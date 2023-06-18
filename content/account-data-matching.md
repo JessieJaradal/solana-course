@@ -8,8 +8,8 @@ objectives:
 
 # TL;DR
 
-- Gumamit ng **mga pagsusuri sa pagpapatunay ng data** upang i-verify na tumutugma ang data ng account sa inaasahang halaga**.** Kung walang mga naaangkop na pagsusuri sa pagpapatunay ng data, maaaring gamitin ang mga hindi inaasahang account sa isang pagtuturo.
-- Upang ipatupad ang mga pagsusuri sa pagpapatunay ng data sa Rust, ihambing lang ang data na nakaimbak sa isang account sa inaasahang halaga.
+- Gumamitin ang **data validation checks** upang ma-verify na tumutugma ang data ng account sa inaasahang halaga**.** Kung walang mga naaangkop na data validations checks, maaaring gamitin ang mga hindi inaasahang account sa isang instruction.
+- Upang ipatupad ang mga data validations checks sa Rust, ikumpara lang ang data na nakaimbak sa isang account sa inaasahang value.
     
     ```rust
     if ctx.accounts.user.key() != ctx.accounts.user_data.user {
