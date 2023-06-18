@@ -9,22 +9,22 @@ objectives:
 
 # TL;DR
 
-- Ang `seeds` at `bump` na mga hadlang ay ginagamit upang simulan at patunayan ang mga PDA account sa Anchor
+- Ang `seeds` at `bump` na mga constraints ay ginagamit upang ma-initialize at patunayan ang mga PDA account sa Anchor
 - Ang `init_if_needed` constraint ay ginagamit upang may kundisyon na magpasimula ng bagong account
-- Ang hadlang na `realloc` ay ginagamit upang muling maglaan ng espasyo sa isang umiiral nang account
+- Ang hadlang na `realloc` ay ginagamit upang muling mag-reallocate ng space sa isang existing nang account
 - Ginagamit ang `close` constraint upang isara ang isang account at i-refund ang renta nito
 
-# Pangkalahatang-ideya
+# Overview
 
 Sa araling ito matututunan mo kung paano magtrabaho sa mga PDA, muling italaga ang mga account, at isara ang mga account sa Anchor.
 
-Alalahanin na ang mga Anchor program ay naghihiwalay ng lohika ng pagtuturo mula sa pagpapatunay ng account. Pangunahing nangyayari ang pagpapatunay ng account sa loob ng mga istrukturang kumakatawan sa listahan ng mga account na kailangan para sa isang ibinigay na tagubilin. Ang bawat field ng struct ay kumakatawan sa ibang account, at maaari mong i-customize ang validation na ginawa sa account gamit ang `#[account(...)]` attribute macro.
+Alalahanin na ang mga Anchor program ay naghihiwalay ng lohika ng pagtuturo mula sa pagpapatunay ng account. Pangunahing nangyayari ang pagpapatunay ng account sa loob ng mga istrukturang kumakatawan sa listahan ng mga account na kailangan para sa isang ibinigay na instruction. Ang bawat field ng struct ay kumakatawan sa ibang account, at maaari mong i-customize ang validation na ginawa sa account gamit ang `#[account(...)]` attribute macro.
 
-Bilang karagdagan sa paggamit ng mga hadlang para sa pagpapatunay ng account, ang ilang mga hadlang ay maaaring humawak ng mga paulit-ulit na gawain na kung hindi man ay mangangailangan ng maraming boilerplate sa loob ng aming lohika ng pagtuturo. Ipakikilala ng araling ito ang mga hadlang sa `seeds`, `bump`, `realloc`, at `close` upang matulungan kang simulan at patunayan ang mga PDA, muling italaga ang mga account, at isara ang mga account.
+Bilang karagdagan sa paggamit ng mga hadlang para sa pagpapatunay ng account, ang ilang mga constraints ay maaaring humawak ng mga paulit-ulit na gawain na kung hindi man ay mangangailangan ng maraming boilerplate sa loob ng ating instruction logic. Ipakikilala ng araling ito ang mga constraints sa `seeds`, `bump`, `realloc`, at `close` upang matulungan kang simulan at patunayan ang mga PDA, muling italaga ang mga account, at isara ang mga account.
 
-## Mga PDA na may Anchor
+## Mga PDAs na may Anchor
 
-Tandaan na ang [mga PDA](https://github.com/Unboxed-Software/solana-course/blob/main/content/pda.md) ay hinango gamit ang isang listahan ng mga opsyonal na buto, bump seed, at program ID. Nagbibigay ang Anchor ng maginhawang paraan upang patunayan ang isang PDA na may mga hadlang na `seeds` at `bump`.
+Tandaan na ang [mga PDA](https://github.com/Unboxed-Software/solana-course/blob/main/content/pda.md) ay hinango gamit ang isang listahan ng mga opsyonal na buto, bump seed, at program ID. Nagbibigay ang Anchor ng maginhawang paraan upang patunayan ang isang PDA na may mga constraints na `seeds` at `bump`.
 
 ```rust
 #[derive(Accounts)]
@@ -37,15 +37,15 @@ struct ExampleAccounts {
 }
 ```
 
-Sa panahon ng pagpapatunay ng account, kukuha ang Anchor ng PDA gamit ang mga binhing tinukoy sa hadlang sa `seeds` at i-verify na ang account na naipasa sa pagtuturo ay tumutugma sa PDA na natagpuan gamit ang tinukoy na `seeds`.
+Sa panahon ng pagpapatunay ng account, kukuha ang Anchor ng PDA gamit ang mga binhing tinukoy sa constraints sa `seeds` at i-verify na ang account na naipasa sa pagtuturo ay tumutugma sa PDA na natagpuan gamit ang tinukoy na `seeds`.
 
-Kapag isinama ang hadlang na `bump` nang hindi tinukoy ang isang partikular na bump, magde-default ang Anchor sa paggamit ng canonical bump (ang unang bump na nagreresulta sa isang wastong PDA). Sa karamihan ng mga kaso dapat mong gamitin ang canonical bump.
+Kapag isinama ang constraints na `bump` nang hindi tinukoy ang isang partikular na bump, magde-default ang Anchor sa paggamit ng canonical bump (ang unang bump na nagreresulta sa isang wastong PDA). Sa karamihan ng mga kaso dapat mong gamitin ang canonical bump.
 
 Maaari mong i-access ang iba pang mga field mula sa loob ng struct mula sa mga hadlang, upang maaari mong tukuyin ang mga seed na umaasa sa iba pang mga account tulad ng pampublikong key ng pumirma.
 
 Maaari mo ring i-reference ang deserialized instruction data kung idaragdag mo ang `#[instruction(...)]` attribute macro sa struct.
 
-Halimbawa, ang sumusunod na halimbawa ay nagpapakita ng isang listahan ng mga account na kinabibilangan ng `pda_account` at `user`. Ang `pda_account` ay pinipigilan na ang mga buto ay dapat ang string na "example_seed," ang pampublikong key ng `user`, at ang string ay ipinasa sa pagtuturo bilang `instruction_data`.
+Halimbawa, ang sumusunod na halimbawa ay nagpapakita ng isang listahan ng mga account na kinabibilangan ng `pda_account` at `user`. Ang `pda_account` ay pinipigilan na ang mga seed ay dapat ang string na "example_seed," ang pampublikong key ng `user`, at ang string ay ipinasa sa instruction bilang `instruction_data`.
 
 ```rust
 #[derive(Accounts)]
@@ -61,13 +61,13 @@ pub struct Example<'info> {
 }
 ```
 
-Kung ang `pda_account` na address na ibinigay ng kliyente ay hindi tumutugma sa PDA na hinango gamit ang tinukoy na mga buto at ang canonical bump, kung gayon ang pagpapatunay ng account ay mabibigo.
+Kung ang `pda_account` na address na ibinigay ng kliyente ay hindi tumutugma sa PDA na hinango gamit ang tinukoy na mga seed at ang canonical bump, kung gayon ang account validation ay mabibigo.
 
-### Gumamit ng mga PDA na may hadlang na `init`
+### Gumamit ng mga PDA na may constrain na `init`
 
 Maaari mong pagsamahin ang `seeds` at `bump` constraints sa `init` constraint upang simulan ang isang account gamit ang isang PDA.
 
-Tandaan na ang `init` na hadlang ay dapat gamitin kasama ng `nagbabayad` at `space` na mga hadlang upang tukuyin ang account na magbabayad para sa pagsisimula ng account at ang puwang na ilalaan sa bagong account. Bilang karagdagan, dapat mong isama ang `system_program` bilang isa sa mga field ng struct ng pagpapatunay ng account.
+Tandaan na ang `init` na constraint ay dapat gamitin kasama ng `nagbabayad` at `space` na mga constraints upang tukuyin ang account na magbabayad para sa pagsisimula ng account at ang puwang na ilalaan sa bagong account. Bilang karagdagan, dapat mong isama ang `system_program` bilang isa sa mga field ng struct ng pagpapatunay ng account.
 
 ```rust
 #[derive(Accounts)]
@@ -91,15 +91,15 @@ pub struct AccountType {
 }
 ```
 
-Kapag gumagamit ng `init` para sa mga hindi PDA account, ang Anchor ay nagde-default sa pagtatakda sa may-ari ng inisyal na account upang maging program na kasalukuyang nagpapatupad ng pagtuturo.
+Kapag gumagamit ng `init` para sa mga hindi PDA account, ang Anchor ay nagde-default sa pagtatakda sa may-ari ng inisyal na account upang maging program na kasalukuyang nagpapatupad ng instruction.
 
 Gayunpaman, kapag gumagamit ng `init` kasama ng `seeds` at `bump`, ang may-ari *ay dapat na ang executing program. Ito ay dahil ang pagsisimula ng isang account para sa PDA ay nangangailangan ng isang lagda na tanging ang executing program ang maaaring magbigay. Sa madaling salita, mabibigo ang signature verification para sa pagsisimula ng PDA account kung ang program ID na ginamit upang makuha ang PDA ay hindi tumugma sa program ID ng executing program.
 
-Kapag tinutukoy ang halaga ng `space` para sa isang account na sinimulan at pagmamay-ari ng nagpapatupad na Anchor program, tandaan na ang unang 8 byte ay nakalaan para sa account discriminator. Ito ay isang 8-byte na halaga na kinakalkula at ginagamit ng Anchor upang matukoy ang mga uri ng account ng programa. Magagamit mo itong [reference](https://www.anchor-lang.com/docs/space) para kalkulahin kung gaano karaming espasyo ang dapat mong ilaan para sa isang account.
+Kapag tinutukoy ang halaga ng `space` para sa isang account na sinimulan at pagmamay-ari ng nagpapatupad na Anchor program, tandaan na ang unang 8 byte ay nakalaan para sa account discriminator. Ito ay isang 8-byte na halaga na kinakalkula at ginagamit ng Anchor upang matukoy ang mga uri ng account ng programa. Magagamit mo itong [reference](https://www.anchor-lang.com/docs/space) para kalkulahin kung gaano karaming space ang dapat mong ilaan para sa isang account.
 
-### Hinuha ng binhi
+### Seed inference
 
-Ang listahan ng account para sa isang pagtuturo ay maaaring maging talagang mahaba para sa ilang mga programa. Upang gawing simple ang karanasan sa panig ng kliyente kapag gumagamit ng pagtuturo ng Anchor program, maaari naming i-on ang seed inference.
+Ang listahan ng account para sa isang instruction ay maaaring maging talagang mahaba para sa ilang mga programa. Upang gawing simple ang karanasan sa panig ng kliyente kapag gumagamit ng instruction ng Anchor program, maaari naming i-on ang seed inference.
 
 Ang seed inference ay nagdaragdag ng impormasyon tungkol sa mga PDA seeds sa IDL upang ang Anchor ay makapag-infer ng mga PDA seed mula sa umiiral na impormasyon sa call-site. Sa nakaraang halimbawa, ang mga buto ay `b"example_seed"` at `user.key()`. Ang una ay static at samakatuwid ay kilala, at ang pangalawa ay kilala dahil ang `user` ay ang pumirma ng transaksyon.
 
@@ -114,11 +114,11 @@ seeds = true
 
 ### Gamitin ang `#[instruction(...)]` attribute macro
 
-Tingnan natin sandali ang `#[instruction(...)]` attribute macro bago magpatuloy. Kapag gumagamit ng `#[instruction(...)]`, ang data ng pagtuturo na ibibigay mo sa listahan ng mga argument ay dapat tumugma at nasa parehong pagkakasunud-sunod ng mga argumento ng pagtuturo. Maaari mong alisin ang mga hindi nagamit na argumento sa dulo ng listahan, ngunit dapat mong isama ang lahat ng argumento hanggang sa huling gagamitin mo.
+Tingnan natin sandali ang `#[instruction(...)]` attribute macro bago magpatuloy. Kapag gumagamit ng `#[instruction(...)]`, ang data ng instruction na ibibigay mo sa listahan ng mga argument ay dapat tumugma at nasa parehong pagkakasunud-sunod ng mga argumento ng instruction. Maaari mong alisin ang mga hindi nagamit na argumento sa dulo ng listahan, ngunit dapat mong isama ang lahat ng argumento hanggang sa huling gagamitin mo.
 
-Halimbawa, isipin na ang isang pagtuturo ay may mga argumento na `input_one`, `input_two`, at `input_three`. Kung ang iyong mga hadlang sa account ay kailangang sumangguni sa `input_one` at `input_three`, kailangan mong ilista ang lahat ng tatlong argument sa `#[instruction(...)]` attribute macro.
+Halimbawa, isipin na ang isang instruction ay may mga argumento na `input_one`, `input_two`, at `input_three`. Kung ang iyong mga constraints sa account ay kailangang i-reference ang `input_one` at `input_three`, kailangan mong ilista ang lahat ng tatlong argument sa `#[instruction(...)]` attribute macro.
 
-Gayunpaman, kung ang iyong mga hadlang ay tumutukoy lamang sa `input_one` at `input_two`, maaari mong alisin ang `input_three`.
+Gayunpaman, kung ang iyong mga constraints ay tumutukoy lamang sa `input_one` at `input_two`, maaari mong alisin ang `input_three`.
 
 ```rust
 pub fn example_instruction(
@@ -150,7 +150,8 @@ pub struct Example<'info> {
 
 ## Init-if-needed
 
-Nagbibigay ang Anchor ng hadlang na `init_if_needed` na maaaring magamit upang simulan ang isang account kung hindi pa nasisimulan ang account.
+Nagbibigay ang Anchor ng constraint na `init_if_needed` na maaaring magamit upang ma-initialize ang isang account kung hindi pa 
+ na-initialize ang account.
 
 Naka-gate ang feature na ito sa likod ng feature flag para matiyak na sinadya mong gamitin ito. Para sa mga kadahilanang pangseguridad, matalinong iwasan ang pagkakaroon ng isang sangay ng pagtuturo sa maraming landas ng lohika. At gaya ng ipinahihiwatig ng pangalan, ang `init_if_needed` ay nagpapatupad ng isa sa dalawang posibleng path ng code depende sa estado ng account na pinag-uusapan.
 
@@ -163,7 +164,7 @@ Upang magamit ang `init_if_needed`, kailangan mo munang paganahin ang feature sa
 anchor-lang = { version = "0.25.0", features = ["init-if-needed"] }
 ```
 
-Kapag na-enable mo na ang feature, maaari mong isama ang constraint sa `#[account(…)]` attribute macro. Ang halimbawa sa ibaba ay nagpapakita ng paggamit ng `init_if_needed` na hadlang upang simulan ang isang bagong nauugnay na token account kung wala pang isa.
+Kapag na-enable mo na ang feature, maaari mong isama ang constraint sa `#[account(…)]` attribute macro. Ang halimbawa sa ibaba ay nagpapakita ng paggamit ng `init_if_needed` na constraint upang simulan ang isang bagong nauugnay na token account kung wala pang isa.
 
 ```rust
 #[program]
@@ -193,17 +194,17 @@ pub struct Initialize<'info> {
 }
 ```
 
-Kapag na-invoke ang `initialize` na pagtuturo sa nakaraang halimbawa, titingnan ng Anchor kung umiiral ang `token_account` at i-initialize ito kung wala. Kung mayroon na ito, magpapatuloy ang pagtuturo nang hindi sinisimulan ang account. Tulad ng `init` constraint, maaari mong gamitin ang `init_if_needed` kasabay ng `seeds` at `bump` kung ang account ay isang PDA.
+Kapag na-invoke ang `initialize` na instruction sa nakaraang halimbawa, titingnan ng Anchor kung umiiral ang `token_account` at i-initialize ito kung wala. Kung mayroon na ito, magpapatuloy ang instruction nang hindi sinisimulan ang account. Tulad ng `init` constraint, maaari mong gamitin ang `init_if_needed` kasabay ng `seeds` at `bump` kung ang account ay isang PDA.
 
 ## Realloc
 
-Ang hadlang na `realloc` ay nagbibigay ng isang simpleng paraan upang muling maglaan ng espasyo para sa mga kasalukuyang account.
+Ang constraint na `realloc` ay nagbibigay ng isang simpleng paraan upang muling maglaan ng space para sa mga kasalukuyang account.
 
-Ang `realloc` na hadlang ay dapat gamitin kasama ng mga sumusunod na hadlang:
+Ang `realloc` na constraint ay dapat gamitin kasama ng mga sumusunod na constraints:
 
 - `mut` - dapat itakda ang account bilang nababago
-- `realloc::payer` - ang account na ibawas o dagdagan ng mga lamport depende sa kung ang relokasyon ay bumababa o tumataas ang espasyo ng account
-- `realloc::zero` - boolean upang tukuyin kung ang bagong memorya ay dapat na zero na nasimulan
+- `realloc::payer` - ang account na ibawas o dagdagan ng mga lamport depende sa kung ang relokasyon ay bumababa o tumataas ang space ng account
+- `realloc::zero` - boolean upang tukuyin kung ang bagong memorya ay dapat na zero na initialized
 
 Tulad ng `init`, dapat mong isama ang `system_program` bilang isa sa mga account sa validation struct ng account kapag gumagamit ng `realloc`.
 
@@ -235,18 +236,18 @@ pub struct AccountType {
 
 Pansinin na ang `realloc` ay nakatakda sa `8 + 4 + instruction_data.len()`. Ito ay nahahati tulad ng sumusunod:
 - Ang `8` ay para sa discriminator ng account
-- Ang `4` ay para sa 4 na byte ng espasyo na ginagamit ng BORSH upang iimbak ang haba ng string
+- Ang `4` ay para sa 4 na byte ng space na ginagamit ng BORSH upang iimbak ang haba ng string
 - Ang `instruction_data.len()` ay ang haba ng string mismo
 
 Kung additive ang pagbabago sa haba ng data ng account, ililipat ang mga lampor mula sa `realloc::payer` sa account upang mapanatili ang exemption sa upa. Gayundin, kung subtractive ang pagbabago, ililipat ang mga lamport mula sa account pabalik sa `realloc::payer`.
 
 Ang `realloc::zero` constraint ay kinakailangan upang matukoy kung ang bagong memory ay dapat na zero initialize pagkatapos ng muling paglalagay. Ang paghihigpit na ito ay dapat na itakda sa true sa mga kaso kung saan inaasahan mong ang memorya ng isang account ay lumiliit at lumawak nang maraming beses. Sa ganoong paraan, wala kang puwang na kung hindi man ay magpapakita bilang lipas na data.
 
-## Isara
+## Close
 
-Ang hadlang na `close` ay nagbibigay ng simple at secure na paraan upang isara ang isang umiiral nang account.
+Ang constraint na `close` ay nagbibigay ng simple at secure na paraan upang isara ang isang umiiral nang account.
 
-Ang hadlang na `close` ay minarkahan ang account bilang sarado sa dulo ng pagpapatupad ng tagubilin sa pamamagitan ng pagtatakda ng discriminator nito sa `CLOSED_ACCOUNT_DISCRIMINATOR` at ipinapadala ang mga lampor nito sa isang tinukoy na account. Ang pagtatakda ng discriminator sa isang espesyal na variant ay ginagawang imposible ang mga pag-atake ng muling pagkabuhay ng account (kung saan ang isang kasunod na tagubilin ay nagdaragdag ng pagbubukod sa renta muli) na imposible. Kung may sumubok na muling simulan ang account, ang muling pagsisimula ay mabibigo sa pagsusuri ng discriminator at ituring na hindi wasto ng programa.
+Ang constraint na `close` ay minarkahan ang account bilang sarado sa dulo ng pagpapatupad ng tagubilin sa pamamagitan ng pagtatakda ng discriminator nito sa `CLOSED_ACCOUNT_DISCRIMINATOR` at ipinapadala ang mga lampor nito sa isang tinukoy na account. Ang pagtatakda ng discriminator sa isang special na variant ay ginagawang imposible ang mga account revival attacks (kung saan ang isang kasunod na tagubilin ay nagdaragdag ng pagbubukod sa renta muli) na imposible. Kung may sumubok na muling simulan ang account, ang reinitialization ay mabibigo sa pagsusuri ng discriminator at ituring na invalid by the program.
 
 Ang halimbawa sa ibaba ay gumagamit ng `close` constraint upang isara ang `data_account` at ipadala ang mga lamports na inilaan para sa upa sa `receiver` account.
 
@@ -349,15 +350,15 @@ pub struct MovieAccountState {
 
 ### 3. Add Movie Review
 
-Susunod, ipatupad natin ang tagubiling `add_movie_review`. Ang tagubiling `add_movie_review` ay mangangailangan ng `Context` ng uri ng `AddMovieReview` na ipapatupad namin sa ilang sandali.
+Susunod, ipatupad natin ang instruction `add_movie_review`. Ang instruction `add_movie_review` ay mangangailangan ng `Context` ng type ng `AddMovieReview` na ipapatupad namin sa ilang sandali.
 
-Mangangailangan ang pagtuturo ng tatlong karagdagang argumento bilang data ng pagtuturo na ibinigay ng isang reviewer:
+Mangangailangan ang instruction ng tatlong karagdagang argumento bilang data ng instruction na ibinigay ng isang reviewer:
 
 - `title` - pamagat ng pelikula bilang `String`
 - `description` - mga detalye ng review bilang `String`
 - `rating` - rating para sa pelikula bilang `u8`
 
-Sa loob ng lohika ng pagtuturo, ilalagay namin ang data ng bagong `movie_review` na account ng data ng pagtuturo. Itatakda din namin ang field ng `reviewer` bilang `initializer` account mula sa konteksto ng pagtuturo.
+Sa loob ng instruction logic, ilalagay namin ang data ng bagong `movie_review` na account ng data ng instruction. Itatakda din namin ang field ng `reviewer` bilang `initializer` account mula sa instruction context.
 
 ```rust
 #[program]
@@ -385,12 +386,12 @@ pub mod movie_review{
 }
 ```
 
-Susunod, gawin natin ang `AddMovieReview` na struct na ginamit namin bilang generic sa konteksto ng pagtuturo. Ililista ng struct na ito ang mga account na kailangan ng tagubiling `add_movie_review`.
+Susunod, gawin natin ang `AddMovieReview` na struct na ginamit namin bilang generic sa instruction's context. Ililista ng struct na ito ang mga account na kailangan ng instruction `add_movie_review`.
 
 Tandaan, kakailanganin mo ang mga sumusunod na macro:
 
 - Ang `#[derive(Accounts)]` macro ay ginagamit upang i-deserialize at patunayan ang listahan ng mga account na tinukoy sa loob ng struct
-- Ang `#[instruction(...)]` attribute macro ay ginagamit upang i-access ang data ng pagtuturo na ipinasa sa pagtuturo
+- Ang `#[instruction(...)]` attribute macro ay ginagamit upang i-access ang data ng pagtuturo na ipinasa sa instruction
 - Ang macro na katangian ng `#[account(...)]` pagkatapos ay tumutukoy ng mga karagdagang hadlang sa mga account
 
 Ang `movie_review` account ay isang PDA na kailangang masimulan, kaya idaragdag namin ang `seeds` at `bump` constraints pati na rin ang `init` constraint kasama ang kinakailangang `payer` at `space` constraints.
@@ -417,15 +418,15 @@ pub struct AddMovieReview<'info> {
 
 ### 4. Update Movie Review
 
-Susunod, ipatupad natin ang tagubiling `update_movie_review` na may konteksto na ang generic na uri ay `UpdateMovieReview`.
+Susunod, ipatupad natin ang instruction `update_movie_review` na may konteksto na ang generic na uri ay `UpdateMovieReview`.
 
-Tulad ng dati, mangangailangan ang pagtuturo ng tatlong karagdagang argumento bilang data ng pagtuturo na ibinigay ng isang tagasuri:
+Tulad ng dati, mangangailangan ang instruction ng tatlong karagdagang argumento bilang data ng instruction na ibinigay ng isang tagasuri:
 
 - `title` - pamagat ng pelikula
 - `description` - mga detalye ng pagsusuri
 - `rating` - rating para sa pelikula
 
-Sa loob ng lohika ng pagtuturo, ia-update namin ang `rating` at `paglalarawan` na nakaimbak sa account na `review_pelikula`.
+Sa loob ng lohika ng instruction, ia-update namin ang `rating` at `paglalarawan` na nakaimbak sa account na `review_pelikula`.
 
 Bagama't hindi nagagamit ang `title` sa mismong instruction function, kakailanganin namin ito para sa pagpapatunay ng account ng `movie_review` sa susunod na hakbang.
 
@@ -457,11 +458,11 @@ pub mod anchor_movie_review_program {
 }
 ```
 
-Susunod, gawin natin ang istrukturang `UpdateMovieReview` para tukuyin ang mga account na kailangan ng pagtuturo ng `update_movie_review`.
+Susunod, gawin natin ang istrukturang `UpdateMovieReview` para tukuyin ang mga account na kailangan ng instruction ng `update_movie_review`.
 
-Dahil ang `movie_review` na account ay nasimulan na sa puntong ito, hindi na namin kailangan ang `init` constraint. Gayunpaman, dahil maaaring iba na ngayon ang halaga ng `paglalarawan`, kailangan naming gamitin ang hadlang na `realloc` upang muling italaga ang espasyo sa account. Kasama nito, kailangan natin ang `mut`, `realloc::payer`, at `realloc::zero` na mga hadlang.
+Dahil ang `movie_review` na account ay na-initialized na sa puntong ito, hindi na namin kailangan ang `init` constraint. Gayunpaman, dahil maaaring iba na ngayon ang halaga ng `paglalarawan`, kailangan naming gamitin ang constraint na `realloc` upang muling reallocate ang space sa account. Kasama nito, kailangan natin ang `mut`, `realloc::payer`, at `realloc::zero` na mga constraints.
 
-Kakailanganin pa rin namin ang mga hadlang na `seeds` at `bump` gaya ng mayroon kami sa `AddMovieReview`.
+Kakailanganin pa rin namin ang mga constraints na `seeds` at `bump` gaya ng mayroon kami sa `AddMovieReview`.
 
 ```rust
 #[derive(Accounts)]
@@ -486,13 +487,13 @@ Tandaan na ang hadlang na `realloc` ay nakatakda sa bagong espasyo na kinakailan
 
 Bukod pa rito, ang hadlang na `realloc::payer` ay tumutukoy na ang anumang karagdagang mga lamport na kinakailangan o i-refund ay manggagaling o ipapadala sa `initializer` account.
 
-Sa wakas, itinakda namin ang `realloc::zero` na hadlang sa `true` dahil ang `movie_review` na account ay maaaring ma-update nang maraming beses nang paliitin o palawakin ang espasyong nakalaan sa account.
+Sa wakas, itinakda namin ang `realloc::zero` na hadlang sa `true` dahil ang `movie_review` na account ay maaaring ma-update nang maraming beses nang paliitin o palawakin ang space nakalaan sa account.
 
 ### 5. Delete Movie Review
 
-Panghuli, ipatupad natin ang tagubiling `delete_movie_review` para isara ang isang kasalukuyang account na `movie_review`.
+Panghuli, ipatupad natin ang instruction `delete_movie_review` para isara ang isang kasalukuyang account na `movie_review`.
 
-Gagamit kami ng konteksto na ang generic na uri ay `DeleteMovieReview` at hindi magsasama ng anumang karagdagang data ng pagtuturo. Dahil nagsasara lang kami ng account, hindi talaga namin kailangan ang anumang lohika ng pagtuturo sa loob ng katawan ng function. Ang pagsasara mismo ay hahawakan ng Anchor constraint sa uri ng `DeleteMovieReview`.
+Gagamit kami ng konteksto na ang generic na uri ay `DeleteMovieReview` at hindi magsasama ng anumang karagdagang data ng instruction. Dahil nagsasara lang kami ng account, hindi talaga namin kailangan ang anumang lohika ng pagtuturo sa loob ng katawan ng function. Ang pagsasara mismo ay hahawakan ng Anchor constraint sa uri ng `DeleteMovieReview`.
 
 ```rust
 #[program]
@@ -536,9 +537,9 @@ Dapat maganda ang programa! Ngayon subukan natin ito. Mag-navigate sa `anchor-mo
 
 Dito tayo:
 
-- Lumikha ng mga default na halaga para sa data ng pagtuturo sa pagsusuri ng pelikula
+- Lumikha ng mga default na halaga para sa data ng instruction sa pagsusuri ng pelikula
 - Kunin ang movie review account PDA
-- Lumikha ng mga placeholder para sa mga pagsubok
+- Lumikha ng mga placeholder para sa mga tests
 
 ```ts
 import * as anchor from "@project-serum/anchor"
@@ -573,9 +574,9 @@ describe("anchor-movie-review-program", () => {
 })
 ```
 
-Susunod, gawin natin ang unang pagsubok para sa pagtuturo ng `addMovieReview`. Tandaan na hindi kami tahasang nagdaragdag ng `.accounts`. Ito ay dahil ang `Wallet` mula sa `AnchorProvider` ay awtomatikong kasama bilang isang pumirma, ang Anchor ay maaaring magpahiwatig ng ilang partikular na account tulad ng `SystemProgram`, at ang Anchor ay maaari ding maghinuha ng `movieReview` na PDA mula sa `title` na argumento ng pagtuturo at ang pampublikong key ng pumirma .
+Susunod, gawin natin ang unang test para sa instruction ng `addMovieReview`. Tandaan na hindi kami tahasang nagdaragdag ng `.accounts`. Ito ay dahil ang `Wallet` mula sa `AnchorProvider` ay awtomatikong kasama bilang isang pumirma, ang Anchor ay maaaring magpahiwatig ng ilang partikular na account tulad ng `SystemProgram`, at ang Anchor ay maaari ding maghinuha ng `movieReview` na PDA mula sa `title` na argumento ng instruction at ang pampublikong key ng pumirma .
 
-Kapag tumakbo na ang pagtuturo, kukunin namin ang account na `movieReview` at tingnan kung tumutugma ang data na nakaimbak sa account sa mga inaasahang halaga.
+Kapag tumakbo na ang instruction, kukunin namin ang account na `movieReview` at tingnan kung tumutugma ang data na nakaimbak sa account sa mga inaasahang value.
 
 ```ts
 it("Movie review is added`", async () => {
@@ -592,7 +593,7 @@ it("Movie review is added`", async () => {
 })
 ```
 
-Susunod, gawin natin ang pagsubok para sa pagtuturo ng `updateMovieReview` na sumusunod sa parehong proseso tulad ng dati.Next, let's create the test for the `updateMovieReview` instruction following the same process as before.
+Susunod, gawin natin ang test para sa instruction ng `updateMovieReview` na sumusunod sa parehong proseso tulad ng dati.Next, let's create the test for the `updateMovieReview` instruction following the same process as before.
 
 ```ts
 it("Movie review is updated`", async () => {
@@ -621,7 +622,7 @@ it("Deletes a movie review", async () => {
 })
 ```
 
-Susunod, gawin ang pagsubok para sa pagtuturo ng `deleteMovieReview`
+Panghuli, patakbuhin ang `anchor test` at dapat mong makita ang sumusunod na output sa console.
 
 ```console
   anchor-movie-review-program
@@ -639,12 +640,12 @@ Kung kailangan mo ng mas maraming oras sa proyektong ito para maging komportable
 
 Ngayon ay iyong pagkakataon na bumuo ng isang bagay nang nakapag-iisa. Gamit ang mga konseptong ipinakilala sa araling ito, subukang muling likhain ang Student Intro program na ginamit namin bago gamitin ang Anchor framework.
 
-Ang Student Intro program ay isang Solana Program na nagbibigay-daan sa mga mag-aaral na magpakilala. Kinukuha ng program ang pangalan ng isang user at isang maikling mensahe bilang data ng pagtuturo at lumilikha ng isang account upang iimbak ang data na on-chain.
+Ang Student Intro program ay isang Solana Program na nagbibigay-daan sa mga mag-aaral na magpakilala. Kinukuha ng program ang pangalan ng isang user at isang maikling mensahe bilang data ng instruction at lumilikha ng isang account upang iimbak ang data na on-chain.
 
-Gamit ang iyong natutunan sa araling ito, buuin ang programang ito. Ang programa ay dapat magsama ng mga tagubilin sa:
+Gamit ang iyong natutunan sa araling ito, buuin ang programang ito. Ang programa ay dapat magsama ng mga instructions sa:
 
 1. Magsimula ng isang PDA account para sa bawat mag-aaral na nag-iimbak ng pangalan ng mag-aaral at ang kanilang maikling mensahe
 2. I-update ang mensahe sa isang umiiral na account
 3. Isara ang isang umiiral nang account
 
-Subukang gawin ito nang nakapag-iisa kung kaya mo! Ngunit kung natigil ka, huwag mag-atubiling sumangguni sa [solution code](https://github.com/Unboxed-Software/anchor-student-intro-program).
+Subukang gawin ito nang nakapag-iisa kung kaya mo! Ngunit kung nahihirapan ka, huwag mag-atubiling sumangguni sa [solution code](https://github.com/Unboxed-Software/anchor-student-intro-program).
