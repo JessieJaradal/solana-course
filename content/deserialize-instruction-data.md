@@ -12,18 +12,18 @@ objectives:
 
 # TL;DR
 
-- Karamihan sa mga programa ay sumusuporta sa **maraming discrete na mga tagubilin** - magpapasya ka kapag isinusulat mo ang iyong programa kung ano ang mga tagubiling ito at kung anong data ang dapat kasama sa kanila
-- Ang mga kalawang **enums** ay kadalasang ginagamit upang kumatawan sa mga hiwalay na tagubilin ng programa
+- Karamihan sa mga programa ay sumusuporta sa **multiple discrete instructions** - magpapasya ka kapag isinusulat mo ang iyong programa kung ano ang mga instructions ito at kung anong data ang dapat kasama sa kanila
+- Ang mga kalawang **enums** ay kadalasang ginagamit upang kumatawan sa mga hiwalay na instructions ng programa
 - Maaari mong gamitin ang `borsh` crate at ang `derive` attribute para magbigay ng Borsh deserialization at serialization functionality sa Rust structs
-- Tumutulong ang mga expression na `match` na kalawang na lumikha ng mga conditional code path batay sa ibinigay na pagtuturo
+- Tumutulong ang mga expression na `match` na kalawang na lumikha ng mga conditional code path batay sa ibinigay na instruction
 
-# Pangkalahatang-ideya
+# Overview
 
-Isa sa mga pinakapangunahing elemento ng isang programa ng Solana ay ang lohika para sa paghawak ng data ng pagtuturo. Karamihan sa mga program ay sumusuporta sa maraming nauugnay na function at gumagamit ng mga pagkakaiba sa data ng pagtuturo upang matukoy kung aling code path ang isasagawa. Halimbawa, ang dalawang magkaibang format ng data sa data ng pagtuturo na ipinasa sa program ay maaaring kumatawan sa mga tagubilin para sa paggawa ng bagong piraso ng data kumpara sa pagtanggal ng parehong piraso ng data.
+Isa sa mga pinakapangunahing elemento ng isang programa ng Solana ay ang lohika para sa paghawak ng data ng instruction. Karamihan sa mga program ay sumusuporta sa maraming nauugnay na function at gumagamit ng mga pagkakaiba sa data ng instruction upang matukoy kung aling code path ang isasagawa. Halimbawa, ang dalawang magkaibang format ng data sa data ng instruction na ipinasa sa program ay maaaring kumatawan sa mga instructions para sa paggawa ng bagong piraso ng data kumpara sa pagtanggal ng parehong piraso ng data.
 
-Dahil ang data ng pagtuturo ay ibinibigay sa entry point ng iyong program bilang isang byte array, karaniwan na gumawa ng Rust data type upang kumatawan sa mga tagubilin sa paraang mas magagamit sa kabuuan ng iyong code. Tatalakayin ng araling ito kung paano i-set up ang ganitong uri, kung paano i-deserialize ang data ng pagtuturo sa format na ito, at kung paano isagawa ang tamang path ng code batay sa pagtuturo na ipinasa sa entry point ng programa.
+Dahil ang data ng instruction ay ibinibigay sa entry point ng iyong program bilang isang byte array, karaniwan na gumawa ng Rust data type upang kumatawan sa mga instructions sa paraang mas magagamit sa kabuuan ng iyong code. Tatalakayin ng araling ito kung paano i-set up ang ganitong uri, kung paano i-deserialize ang data ng instruction sa format na ito, at kung paano isagawa ang tamang path ng code batay sa instruction na ipinasa sa entry point ng programa.
 
-## Mga pangunahing kaalaman sa kalawang
+## Rust basics
 
 Bago tayo sumisid sa mga detalye ng isang pangunahing programa ng Solana, pag-usapan natin ang mga pangunahing kaalaman sa Rust na gagamitin natin sa buong araling ito.
 
@@ -49,9 +49,9 @@ mutable_age = 34;
 
 Ginagarantiyahan ng Rust compiler na ang mga hindi nababagong variable ay tunay na hindi maaaring magbago kaya hindi mo na kailangang subaybayan ito mismo. Ginagawa nitong mas madaling mangatuwiran ang iyong code at pinapasimple nito ang pag-debug.
 
-### Mga istruktura
+### Structs
 
-Ang struct, o structure, ay isang custom na uri ng data na nagbibigay-daan sa iyong mag-package nang sama-sama at pangalanan ang maraming magkakaugnay na value na bumubuo sa isang makabuluhang pangkat. Ang bawat piraso ng data sa isang struct ay maaaring may iba't ibang uri at bawat isa ay may pangalang nauugnay dito. Ang mga piraso ng data na ito ay tinatawag na **mga patlang**. Pareho silang kumilos sa mga pag-aari sa ibang mga wika.
+Ang struct, o structure, ay isang custom na type ng data na nagbibigay-daan sa iyong mag-package nang sama-sama at pangalanan ang maraming magkakaugnay na value na bumubuo sa isang makabuluhang pangkat. Ang bawat piraso ng data sa isang struct ay maaaring may iba't ibang uri at bawat isa ay may pangalang nauugnay dito. Ang mga piraso ng data na ito ay tinatawag na **fields**. Pareho silang kumilos sa mga pag-aari sa ibang mga wika.
 
 ```rust
 struct User {
@@ -61,7 +61,7 @@ struct User {
 }
 ```
 
-Upang gumamit ng struct pagkatapos naming tukuyin ito, gumawa kami ng instance ng struct na iyon sa pamamagitan ng pagtukoy ng mga kongkretong halaga para sa bawat isa sa mga field.
+Upang gumamit ng struct pagkatapos naming tukuyin ito, gumawa tayo ng instance ng struct na iyon sa pamamagitan ng pagtukoy ng mga kongkretong halaga para sa bawat isa sa mga field.
 
 ```rust
 let mut user1 = User {
@@ -77,7 +77,7 @@ Upang makakuha o magtakda ng isang partikular na halaga mula sa isang struct, gu
 user1.age = 37;
 ```
 
-### Mga enumerasyon
+### Enumerations
 
 Ang Enumerations (o Enums) ay isang data struct na nagbibigay-daan sa iyong tukuyin ang isang uri sa pamamagitan ng pag-enumerate sa mga posibleng variant nito. Ang isang halimbawa ng isang enum ay maaaring magmukhang:
 
@@ -105,7 +105,7 @@ let light_status = LightStatus::On { color: String::from("red") };
 
 Sa halimbawang ito, ang pagtatakda ng variable sa `On` na variant ng `LightStatus` ay nangangailangan din ng pagtatakda ng value ng `color`.
 
-### Mga pahayag ng pagtutugma
+### Match statements
 
 Ang mga pahayag ng pagtutugma ay halos kapareho sa mga pahayag ng `switch` sa C/C++. Binibigyang-daan ka ng statement na `match` na ihambing ang isang value laban sa isang serye ng mga pattern at pagkatapos ay i-execute ang code batay sa kung aling pattern ang tumutugma sa value. Ang mga pattern ay maaaring gawin ng mga literal na halaga, variable na pangalan, wildcard, at higit pa. Dapat isama sa statement ng tugma ang lahat ng posibleng sitwasyon, kung hindi ay hindi mag-compile ang code.
 
@@ -127,9 +127,9 @@ fn value_in_cents(coin: Coin) -> u8 {
 }
 ```
 
-### Mga Pagpapatupad
+### Implementations
 
-Ang keyword na `impl` ay ginagamit sa Rust upang tukuyin ang mga pagpapatupad ng isang uri. Ang mga pag-andar at mga constant ay maaaring parehong tukuyin sa isang pagpapatupad.
+Ang keyword na `impl` ay ginagamit sa Rust upang tukuyin ang mga pagpapatupad ng isang type. Ang mga pag-andar at mga constant ay maaaring parehong tukuyin sa isang pagpapatupad.
 
 ```rust
 struct Example {
@@ -151,7 +151,7 @@ impl Example {
 }
 ```
 
-Ang function na `boo` dito ay matatawag lang sa mismong uri sa halip na isang instance ng uri, tulad nito:
+Ang function na `boo` dito ay matatawag lang sa mismong type sa halip na isang instance ng type, tulad nito:
 
 ```rust
 Example::boo();
@@ -164,23 +164,23 @@ let mut example = Example { number: 3 };
 example.answer();
 ```
 
-### Mga katangian at katangian
+### Traits and attributes
 
-Hindi ka gagawa ng sarili mong mga katangian o katangian sa yugtong ito, kaya hindi kami magbibigay ng malalim na paliwanag sa alinman. Gayunpaman, gagamitin mo ang macro ng attribute na `derive` at ilang katangiang ibinigay ng `borsh` crate, kaya mahalagang mayroon kang mataas na antas ng pang-unawa sa bawat isa.
+Hindi ka gagawa ng sarili mong mga traits o attributes sa yugtong ito, kaya hindi kami magbibigay ng malalim na paliwanag sa alinman. Gayunpaman, gagamitin mo ang macro ng attribute na `derive` at ilang katangiang ibinigay ng `borsh` crate, kaya mahalagang mayroon kang mataas na antas ng pang-unawa sa bawat isa.
 
 Inilalarawan ng mga katangian ang isang abstract na interface na maaaring ipatupad ng mga uri. Kung ang isang katangian ay tumutukoy sa isang function na `bark()` at ang isang uri ay nagpatibay ng katangiang iyon, ang uri ay dapat na ipatupad ang `bark()` function.
 
 [Mga Katangian](https://doc.rust-lang.org/rust-by-example/attribute.html) magdagdag ng metadata sa isang uri at maaaring gamitin para sa maraming iba't ibang layunin.
 
-Kapag idinagdag mo ang [`derive` attribute](https://doc.rust-lang.org/rust-by-example/trait/derive.html) sa isang uri at nagbigay ng isa o higit pang mga sinusuportahang katangian, bubuo ang code sa ilalim ang hood upang awtomatikong ipatupad ang mga katangian para sa ganoong uri. Magbibigay kami ng isang kongkretong halimbawa nito sa ilang sandali.
+Kapag idinagdag mo ang [`derive` attribute](https://doc.rust-lang.org/rust-by-example/trait/derive.html) sa isang uri at nagbigay ng isa o higit pang mga sinusuportahang katangian, bubuo ang code sa ilalim ang hood upang awtomatikong ipatupad ang mga katangian para sa ganoong type. Magbibigay kami ng isang kongkretong halimbawa nito sa ilang sandali.
 
-## Kinakatawan ang mga tagubilin bilang isang Rust na uri ng data
+## Representing instructions as a Rust data type
 
 Ngayong nasaklaw na natin ang mga pangunahing kaalaman sa Rust, ilapat natin ang mga ito sa mga programang Solana.
 
-Mas madalas kaysa sa hindi, ang mga programa ay magkakaroon ng higit sa isang function. Halimbawa, maaaring mayroon kang program na nagsisilbing backend para sa isang app sa pagkuha ng tala. Ipagpalagay na ang program na ito ay tumatanggap ng mga tagubilin para sa paglikha ng isang bagong tala, pag-update ng isang umiiral na tala, at pagtanggal ng isang umiiral na tala.
+Mas madalas kaysa sa hindi, ang mga programa ay magkakaroon ng higit sa isang function. Halimbawa, maaaring mayroon kang program na nagsisilbing backend para sa isang app sa pagkuha ng tala. Ipagpalagay na ang program na ito ay tumatanggap ng mga instructions para sa paglikha ng isang bagong tala, pag-update ng isang umiiral na tala, at pagtanggal ng isang umiiral na tala.
 
-Dahil ang mga tagubilin ay may mga discrete na uri, kadalasan ay angkop ang mga ito para sa isang uri ng data ng enum.
+Dahil ang mga instructions ay may mga discrete na types, kadalasan ay angkop ang mga ito para sa isang type ng data ng enum.
 
 ```rust
 enum NoteInstruction {
@@ -202,15 +202,15 @@ enum NoteInstruction {
 
 Pansinin na ang bawat variant ng `NoteInstruction` enum ay may kasamang naka-embed na data na gagamitin ng program para magawa ang mga gawain ng paglikha, pag-update, at pagtanggal ng tala, ayon sa pagkakabanggit.
 
-## Deserialize ang data ng pagtuturo
+## Deserialize instruction data
 
-Ang data ng pagtuturo ay ipinapasa sa programa bilang isang byte array, kaya kailangan mo ng isang paraan upang tiyak na i-convert ang array na iyon sa isang halimbawa ng uri ng pagtuturo enum.
+Ang data ng instruction ay ipinapasa sa programa bilang isang byte array, kaya kailangan mo ng isang paraan upang tiyak na i-convert ang array na iyon sa isang halimbawa ng uri ng pagtuturo enum.
 
-Sa mga nakaraang module, ginamit namin ang Borsh para sa client-side serialization at deserialization. Upang gamitin ang Borsh program-side, ginagamit namin ang `borsh` crate. Nagbibigay ang crate na ito ng mga katangian para sa `BorshDeserialize` at `BorshSerialize` na maaari mong ilapat sa iyong mga uri gamit ang attribute na `derive`.
+Sa mga nakaraang module, ginamit namin ang Borsh para sa client-side serialization at deserialization. Upang gamitin ang Borsh program-side, ginagamit namin ang `borsh` crate. Nagbibigay ang crate na ito ng mga traits para sa `BorshDeserialize` at `BorshSerialize` na maaari mong ilapat sa iyong mga types gamit ang attribute na `derive`.
 
-Upang gawing simple ang data ng pagtuturo ng deserializing, maaari kang gumawa ng struct na kumakatawan sa data at gamitin ang attribute na `derive` para ilapat ang trait na `BorshDeserialize` sa struct. Ipinapatupad nito ang mga pamamaraang tinukoy sa `BorshDeserialize`, kasama ang pamamaraang `try_from_slice` na gagamitin namin para i-deserialize ang data ng pagtuturo.
+Upang gawing simple ang data ng instruction ng deserializing, maaari kang gumawa ng struct na kumakatawan sa data at gamitin ang attribute na `derive` para ilapat ang trait na `BorshDeserialize` sa struct. Ipinapatupad nito ang mga pamamaraang tinukoy sa `BorshDeserialize`, kasama ang pamamaraang `try_from_slice` na gagamitin namin para i-deserialize ang data ng instruction.
 
-Tandaan, ang struct mismo ay kailangang tumugma sa istraktura ng data sa byte array.
+Tandaan, ang struct mismo ay kailangang tumugma sa structure ng data sa byte array.
 
 ```rust
 #[derive(BorshDeserialize)]
@@ -221,9 +221,9 @@ struct NoteInstructionPayload {
 }
 ```
 
-Kapag nalikha na ang struct na ito, maaari kang lumikha ng pagpapatupad para sa iyong enum ng pagtuturo upang mahawakan ang lohika na nauugnay sa deserializing na data ng pagtuturo. Karaniwang makitang ginagawa ito sa loob ng isang function na tinatawag na `unpack` na tumatanggap ng data ng pagtuturo bilang argumento at ibinabalik ang naaangkop na instance ng enum na may deserialized na data.
+Kapag nalikha na ang struct na ito, maaari kang lumikha ng pagpapatupad para sa iyong enum ng pagtuturo upang mahawakan ang logic na associated sa deserializing na data ng instruction. Karaniwang makitang ginagawa ito sa loob ng isang function na tinatawag na `unpack` na tumatanggap ng data ng instruction bilang argumento at ibinabalik ang naaangkop na instance ng enum na may deserialized na data.
 
-Karaniwang kasanayan ang pagbuo ng iyong programa upang asahan ang unang byte (o iba pang nakapirming bilang ng mga byte) upang maging isang identifier kung saan ang pagtuturo ay dapat tumakbo ang program. Ito ay maaaring isang integer o isang string identifier. Para sa halimbawang ito, gagamitin namin ang unang byte at mga integer ng mapa 0, 1, at 2 sa mga tagubilin sa paggawa, pag-update, at pagtanggal, ayon sa pagkakabanggit.
+Karaniwang kasanayan ang pagbuo ng iyong programa upang asahan ang unang byte (o iba pang nakapirming bilang ng mga byte) upang maging isang identifier kung saan ang instruction ay dapat tumakbo ang program. Ito ay maaaring isang integer o isang string identifier. Para sa halimbawang ito, gagamitin namin ang unang byte at mga integer ng mapa 0, 1, at 2 sa mga instruction sa paggawa, pag-update, at pagtanggal, ayon sa pagkakabanggit.
 
 ```rust
 impl NoteInstruction {
@@ -259,7 +259,7 @@ impl NoteInstruction {
 
 Marami sa halimbawang ito kaya gawin natin ito nang paisa-isa:
 
-1. Nagsisimula ang function na ito sa pamamagitan ng paggamit ng function na `split_first` sa parameter na `input` upang magbalik ng tuple. Ang unang elemento, `variant`, ay ang unang byte mula sa byte array at ang pangalawang elemento, `rest`, ay ang natitirang bahagi ng byte array.
+1. Nagsisimula ang function na ito sa pamamagitan ng paggamit ng function na `split_first` sa parameter na `input` upang mag-return ng tuple. Ang unang element, `variant`, ay ang unang byte mula sa byte array at ang pangalawang element, `rest`, ay ang natitirang bahagi ng byte array.
 2. Ginagamit ng function ang pamamaraang `try_from_slice` sa `NoteInstructionPayload` upang i-deserialize ang natitirang bahagi ng byte array sa isang instance ng `NoteInstructionPayload` na tinatawag na `payload`
 3. Panghuli, ang function ay gumagamit ng `match` statement sa `variant` para gumawa at ibalik ang naaangkop na enum instance gamit ang impormasyon mula sa `payload`
 
@@ -267,7 +267,7 @@ Tandaan na mayroong Rust syntax sa function na ito na hindi pa namin naipaliwana
 
 ## Logic ng programa
 
-Sa isang paraan upang i-deserialize ang data ng pagtuturo sa isang custom na uri ng Rust, maaari mong gamitin ang naaangkop na daloy ng kontrol upang magsagawa ng iba't ibang mga path ng code sa iyong programa batay sa kung aling pagtuturo ang ipinasa sa entry point ng iyong programa.
+Sa isang paraan upang i-deserialize ang data ng pagtuturo sa isang custom na uri ng Rust, maaari mong gamitin ang naaangkop na daloy ng kontrol upang magsagawa ng iba't ibang mga path ng code sa iyong programa batay sa kung aling instruction ang ipinasa sa entry point ng iyong programa.
 
 ```rust
 entrypoint!(process_instruction);
@@ -294,13 +294,13 @@ pub fn process_instruction(
 }
 ```
 
-Para sa mga simpleng programa kung saan mayroon lamang isa o dalawang tagubilin na isasagawa, maaaring mainam na isulat ang lohika sa loob ng pahayag ng tugma. Para sa mga program na may maraming iba't ibang posibleng mga tagubilin na itugma, ang iyong code ay magiging mas nababasa kung ang lohika para sa bawat pagtuturo ay nakasulat sa isang hiwalay na function at tatawagin lamang mula sa loob ng `match` na pahayag.
+Para sa mga simpleng programa kung saan mayroon lamang isa o dalawang instructions na isasagawa, maaaring mainam na isulat ang logic sa loob ng pahayag ng tugma. Para sa mga program na may maraming iba't ibang posibleng mga instructions na itugma, ang iyong code ay magiging mas nababasa kung ang logic para sa bawat instruction ay nakasulat sa isang hiwalay na function at tatawagin lamang mula sa loob ng `match` na pahayag.
 
-## Istraktura ng file ng programa
+## Program file structure
 
-Ang programa ng [Hello World lesson](hello-world-program.md) ay sapat na simple kaya maaari itong makulong sa isang file. Ngunit habang lumalaki ang pagiging kumplikado ng isang programa, mahalagang mapanatili ang isang istraktura ng proyekto na nananatiling nababasa at napapalawak. Kabilang dito ang pag-encapsulate ng code sa mga function at istruktura ng data gaya ng ginawa namin sa ngayon. Ngunit kabilang din dito ang pagpapangkat ng mga kaugnay na code sa magkakahiwalay na mga file.
+Ang programa ng [Hello World lesson](hello-world-program.md) ay sapat na simple kaya maaari itong makulong sa isang file. Ngunit habang lumalaki ang pagiging kumplikado ng isang programa, mahalagang mapanatili ang isang istraktura ng proyekto na nananatiling nababasa at napapalawak. Kabilang dito ang pag-encapsulate ng code sa mga function at structure ng data gaya ng ginawa namin sa ngayon. Ngunit kabilang din dito ang pagpapangkat ng mga kaugnay na code sa magkakahiwalay na mga file.
 
-Halimbawa, ang isang magandang bahagi ng code na pinagsikapan namin sa ngayon ay may kinalaman sa pagtukoy at pag-deserialize ng mga tagubilin. Ang code na iyon ay dapat mabuhay sa sarili nitong file sa halip na isulat sa parehong file bilang entry point. Sa paggawa nito, magkakaroon tayo ng 2 file, ang isa ay may entry point ng programa at ang isa ay may instruction code:
+Halimbawa, ang isang magandang bahagi ng code na pinagsikapan namin sa ngayon ay may kinalaman sa pagtukoy at pag-deserialize ng mga instructions. Ang code na iyon ay dapat mabuhay sa sarili nitong file sa halip na isulat sa parehong file bilang entry point. Sa paggawa nito, magkakaroon tayo ng 2 file, ang isa ay may entry point ng programa at ang isa ay may instruction code:
 
 - **lib.rs**
 - **instruction.rs**
@@ -322,7 +322,7 @@ pub enum NoteInstruction { ... }
 
 Para sa demo ng araling ito, bubuuin namin ang unang kalahati ng programa ng Pagsusuri ng Pelikula na ginamit namin sa Module 1. Ang program na ito ay nag-iimbak ng mga pagsusuri sa pelikula na isinumite ng mga user.
 
-Sa ngayon, magtutuon kami sa deserializing ng data ng pagtuturo. Ang susunod na aralin ay tututuon sa ikalawang kalahati ng programang ito.
+Sa ngayon, magtutuon kami sa deserializing ng data ng instruction. Ang susunod na aralin ay tututuon sa ikalawang kalahati ng programang ito.
 
 ### 1. Entry point
 
@@ -353,9 +353,9 @@ pub fn process_instruction(
 }
 ```
 
-### 2. I-deserialize ang data ng pagtuturo
+### 2. I-deserialize ang data ng instruction
 
-Bago tayo magpatuloy sa lohika ng processor, dapat nating tukuyin ang ating mga sinusuportahang tagubilin at ipatupad ang ating deserialization function.
+Bago tayo magpatuloy sa processor logic, dapat nating tukuyin ang ating mga sinusuportahang instructions at ipatupad ang ating deserialization function.
 
 Para sa pagiging madaling mabasa, gumawa tayo ng bagong file na tinatawag na `instruction.rs`. Sa loob ng bagong file na ito, magdagdag ng mga statement na `use` para sa `BorshDeserialize` at `ProgramError`, pagkatapos ay gumawa ng `MovieInstruction` enum na may variant ng `AddMovieReview`. Ang variant na ito ay dapat may mga naka-embed na value para sa `title,` `rating`, at `description`.
 
@@ -372,7 +372,7 @@ pub enum MovieInstruction {
 }
 ```
 
-Susunod, tukuyin ang isang `MovieReviewPayload` struct. Ito ay magsisilbing intermediary type para sa deserializtion kaya dapat nitong gamitin ang `derive` attribute macro para magbigay ng default na pagpapatupad para sa `BorshDeserialize` na katangian.
+Susunod, tukuyin ang isang `MovieReviewPayload` struct. Ito ay magsisilbing intermediary type para sa deserializtion kaya dapat nitong gamitin ang `derive` attribute macro para magbigay ng default na pagpapatupad para sa `BorshDeserialize` na trait.
 
 ```rust
 #[derive(BorshDeserialize)]
@@ -387,7 +387,7 @@ Panghuli, gumawa ng pagpapatupad para sa `MovieInstruction` enum na tumutukoy at
 
 1. Gamitin ang function na `split_first` upang hatiin ang unang byte ng array mula sa iba pang array
 2. Deserialize ang natitirang array sa isang instance ng `MovieReviewPayload`
-3. Gumamit ng statement na `match` para ibalik ang variant ng `AddMovieReview` ng `MovieInstruction` kung ang unang byte ng array ay 0 o nagbabalik ng error sa program kung hindi.
+3. Gumamit ng statement na `match` para ibalik ang variant ng `AddMovieReview` ng `MovieInstruction` kung ang unang byte ng array ay 0 o nag-return ng error sa program kung ganunpaman.
 
 ```rust
 impl MovieInstruction {
@@ -411,11 +411,11 @@ impl MovieInstruction {
 }
 ```
 
-### 3. Logic ng programa
+### 3. Program logic
 
-Kapag pinangangasiwaan ang pagtuturo ng deserialization, maaari tayong bumalik sa `lib.rs` file upang pangasiwaan ang ilan sa aming logic ng programa.
+Kapag pinangangasiwaan ang instruction ng deserialization, maaari tayong mag-return sa `lib.rs` file upang pangasiwaan ang ilan sa ating program logic.
 
-Tandaan, dahil nagdagdag kami ng code sa ibang file, kailangan namin itong irehistro sa `lib.rs` file gamit ang `pub mod instruction;`. Pagkatapos ay maaari tayong magdagdag ng pahayag na `gamitin` upang dalhin ang uri ng `MovieInstruction` sa saklaw.
+Tandaan, dahil nagdagdag kami ng code sa ibang file, kailangan namin itong irehistro sa `lib.rs` file gamit ang `pub mod instruction;`. Pagkatapos ay maaari tayong magdagdag ng pahayag na `gamitin` upang dalhin ang type ng `MovieInstruction` sa scope.
 
 ```rust
 pub mod instruction;
@@ -463,11 +463,11 @@ pub fn process_instruction(
 }
 ```
 
-At ganoon din, ang iyong programa ay dapat na gumagana nang sapat upang mai-log ang data ng pagtuturo na ipinasa kapag ang isang transaksyon ay isinumite!
+At ganoon din, ang iyong programa ay dapat na gumagana nang sapat upang mai-log ang data ng instruction na ipinasa kapag ang isang transaksyon ay isinumite!
 
 Buuin at i-deploy ang iyong programa mula sa Solana Program tulad ng sa huling aralin. Kung hindi mo pa binago ang program ID mula noong dumaan sa huling aralin, awtomatiko itong ide-deploy sa parehong ID. Kung gusto mo itong magkaroon ng hiwalay na address maaari kang bumuo ng bagong program ID mula sa playground bago i-deploy.
 
-Maaari mong subukan ang iyong programa sa pamamagitan ng pagsusumite ng isang transaksyon na may tamang data ng pagtuturo. Para diyan, huwag mag-atubiling gamitin [ang script na ito](https://github.com/Unboxed-Software/solana-movie-client) o [ang frontend](https://github.com/Unboxed-Software/solana-movie-frontend) na binuo namin sa [Serialize Custom Instruction Data lesson](serialize-instruction-data.md). Sa parehong mga kaso, siguraduhing kopyahin at i-paste mo ang program ID para sa iyong program sa naaangkop na bahagi ng source code upang matiyak na sinusubukan mo ang tamang program.
+Maaari mong subukan ang iyong programa sa pamamagitan ng pagsusumite ng isang transaksyon na may tamang data ng instruction. Para diyan, huwag mag-atubiling gamitin [ang script na ito](https://github.com/Unboxed-Software/solana-movie-client) o [ang frontend](https://github.com/Unboxed-Software/solana-movie-frontend) na binuo namin sa [Serialize Custom Instruction Data lesson](serialize-instruction-data.md). Sa parehong mga kaso, siguraduhing kopyahin at i-paste mo ang program ID para sa iyong program sa naaangkop na bahagi ng source code upang matiyak na sinusubukan mo ang tamang program.
 
 Kung kailangan mong gumugol ng mas maraming oras sa demo na ito bago magpatuloy, mangyaring gawin! Maaari mo ring tingnan ang program [code ng solusyon](https://beta.solpg.io/62aa9ba3b5e36a8f6716d45b) kung natigil ka.
 
@@ -479,4 +479,4 @@ Gamit ang iyong natutunan sa araling ito, buuin ang Student Intro program hangga
 
 Maaari mong subukan ang iyong programa sa pamamagitan ng pagbuo ng [frontend](https://github.com/Unboxed-Software/solana-student-intros-frontend/tree/solution-serialize-instruction-data) na ginawa namin sa [Serialize Custom Instruction Data lesson](serialize-instruction-data.md) at pagkatapos ay suriin ang mga log ng program sa Solana Explorer. Tandaang palitan ang program ID sa frontend code ng na-deploy mo.
 
-Subukang gawin ito nang nakapag-iisa kung kaya mo! Ngunit kung natigil ka, huwag mag-atubiling sumangguni sa [code ng solusyon](https://beta.solpg.io/62b0ce53f6273245aca4f5b0).
+Subukang gawin ito nang mag-iisa kung kaya mo! Ngunit kung nahihirapan ka, huwag mag-atubiling sumangguni sa [solution code](https://beta.solpg.io/62b0ce53f6273245aca4f5b0).
