@@ -8,19 +8,19 @@ objectives:
 
 # TL;DR
 
-- Upang makabuo ng CPI, ang target na programa ay dapat na maipasa sa invoking instruction bilang isang account. Nangangahulugan ito na ang anumang target na programa ay maaaring maipasa sa pagtuturo. Dapat suriin ng iyong programa ang mga hindi tama o hindi inaasahang mga programa.
+- Upang makabuo ng CPI, ang target na programa ay dapat na maipasa sa invoking instruction as an account. Nangangahulugan ito na ang anumang target na programa ay maaaring maipasa sa pagtuturo. Dapat suriin ng iyong programa ang mga hindi tama o hindi inaasahang mga programa.
 - Magsagawa ng mga pagsusuri ng programa sa mga katutubong programa sa pamamagitan lamang ng paghahambing ng pampublikong susi ng naipasa na programa sa programang iyong inaasahan.
 - Kung ang isang programa ay nakasulat sa Anchor, maaaring mayroon itong pampublikong CPI module. Ginagawa nitong simple at secure ang pag-invoke sa program mula sa isa pang Anchor program. Awtomatikong sinusuri ng Anchor CPI module na ang address ng program na ipinasa ay tumutugma sa address ng program na nakaimbak sa module.
 
-# Pangkalahatang-ideya
+# Overview
 
-Ang cross program invocation (CPI) ay kapag ang isang programa ay humihiling ng pagtuturo sa isa pang programa. Ang "arbitraryong CPI" ay kapag ang isang programa ay nakabalangkas na mag-isyu ng isang CPI sa anumang programa na ipinasa sa pagtuturo sa halip na umasang magsagawa ng isang CPI sa isang partikular na programa. Dahil ang mga tumatawag sa pagtuturo ng iyong programa ay maaaring magpasa ng anumang program na gusto nila sa listahan ng mga account ng pagtuturo, ang hindi pag-verify ng address ng isang naipasa na programa ay nagreresulta sa iyong programa na gumaganap ng mga CPI sa mga arbitrary na programa.
+Ang cross program invocation (CPI) ay kapag ang isang programa ay humihiling ng instruction sa isa pang programa. Ang "arbitraryong CPI" ay kapag ang isang programa ay nakabalangkas na mag-isyu ng isang CPI sa anumang programa na ipinasa sa instruction sa halip na umasang magsagawa ng isang CPI sa isang partikular na programa. Dahil ang mga tumatawag sa instruction ng iyong programa ay maaaring magpasa ng anumang program na gusto nila sa listahan ng mga account ng instruction, ang hindi pag-verify ng address ng isang naipasa na programa ay nagreresulta sa iyong programa na gumaganap ng mga CPI sa mga arbitrary na programa.
 
-Ang kakulangan ng mga pagsusuri ng programa ay lumilikha ng pagkakataon para sa isang malisyosong user na makapasa sa isang programang iba kaysa sa inaasahan, na nagiging sanhi ng orihinal na programa na tumawag ng isang pagtuturo sa misteryosong programang ito. Walang sinasabi kung ano ang maaaring maging kahihinatnan ng CPI na ito. Depende ito sa logic ng programa (parehong sa orihinal na programa at sa hindi inaasahang programa), pati na rin kung ano ang iba pang mga account na ipinasa sa orihinal na pagtuturo.
+Ang kakulangan ng mga pagsusuri ng programa ay lumilikha ng pagkakataon para sa isang malicious user na makapasa sa isang programang iba kaysa sa inaasahan, na nagiging sanhi ng orihinal na programa na tumawag ng isang instruction sa misteryosong programang ito. Walang sinasabi kung ano ang maaaring maging kahihinatnan ng CPI na ito. Depende ito sa logic ng programa (parehong sa orihinal na programa at sa hindi inaasahang programa), pati na rin kung ano ang iba pang mga account na ipinasa sa orihinal na instruction.
 
-## Walang mga pagsusuri sa programa
+## Nawawalang mga program checks
 
-Kunin ang sumusunod na programa bilang isang halimbawa. Ang pagtuturo ng `cpi` ay nagpapatawag ng pagtuturo ng `transfer` sa `token_program`, ngunit walang code na nagsusuri kung ang `token_program` account na naipasa sa pagtuturo ay, sa katunayan, ang SPL Token Program.
+Kunin ang sumusunod na programa bilang isang halimbawa. Ang instruction ng `cpi` ay nagpapatawag ng instruction ng `transfer` sa `token_program`, ngunit walang code na nagsusuri kung ang `token_program` account na naipasa sa instruction ay, sa katunayan, ang SPL Token Program.
 
 ```rust
 use anchor_lang::prelude::*;
@@ -60,11 +60,11 @@ pub struct Cpi<'info> {
 }
 ```
 
-Madaling tawagan ng isang attacker ang tagubiling ito at ipasa ang isang duplicate na token program na kanilang nilikha at kinokontrol.
+Madaling tawagan ng isang attacker ang instruction ito at ipasa ang isang duplicate na token program na kanilang nilikha at kinokontrol.
 
-## Magdagdag ng mga pagsusuri sa programa
+## Magdagdag ng mga program checks
 
-Posibleng ayusin ang kahinaan na ito sa pamamagitan lamang ng pagdaragdag ng ilang linya sa tagubiling `cpi` upang suriin kung ang pampublikong susi ng `token_program` ay yaong sa SPL Token Program o hindi.
+Posibleng ayusin ang kahinaan na ito sa pamamagitan lamang ng pagdaragdag ng ilang linya sa instruction `cpi` upang suriin kung ang pampublikong susi ng `token_program` ay yaong sa SPL Token Program o hindi.
 
 ```rust
 pub fn cpi_secure(ctx: Context<Cpi>, amount: u64) -> ProgramResult {
@@ -89,17 +89,17 @@ pub fn cpi_secure(ctx: Context<Cpi>, amount: u64) -> ProgramResult {
 }
 ```
 
-Ngayon, kung pumasa ang isang attacker sa ibang token program, ibabalik ng tagubilin ang error na `ProgramError::IncorrectProgramId`.
+Ngayon, kung pumasa ang isang attacker sa ibang token program, ibabalik ng instruction ang error na `ProgramError::IncorrectProgramId`.
 
 Depende sa program na ginagamit mo sa iyong CPI, maaari mong i-hard code ang address ng inaasahang program ID o gamitin ang Rust crate ng program para makuha ang address ng program, kung available. Sa halimbawa sa itaas, ang `spl_token` crate ay nagbibigay ng address ng SPL Token Program.
 
 ## Gumamit ng Anchor CPI module
 
-Ang isang mas simpleng paraan upang pamahalaan ang mga pagsusuri ng programa ay ang paggamit ng mga module ng Anchor CPI. Nalaman namin sa isang [nakaraang aralin](https://github.com/Unboxed-Software/solana-course/blob/main/content/anchor-cpi.md) na ang Anchor ay awtomatikong makakabuo ng mga CPI module upang gumawa ng mga CPI sa programa mas simple. Pinapahusay din ng mga module na ito ang seguridad sa pamamagitan ng pag-verify sa pampublikong key ng program na ipinasa sa isa sa mga pampublikong tagubilin nito.
+Ang isang mas simpleng paraan upang pamahalaan ang mga pagsusuri ng programa ay ang paggamit ng mga module ng Anchor CPI. Nalaman namin sa isang [nakaraang aralin](https://github.com/Unboxed-Software/solana-course/blob/main/content/anchor-cpi.md) na ang Anchor ay awtomatikong makakabuo ng mga CPI module upang gumawa ng mga CPI sa programa mas simple. Pinapahusay din ng mga module na ito ang seguridad sa pamamagitan ng pag-verify sa pampublikong key ng program na ipinasa sa isa sa mga pampublikong instructions nito.
 
 Ang bawat Anchor program ay gumagamit ng `declare_id()` na macro upang tukuyin ang address ng program. Kapag nabuo ang isang CPI module para sa isang partikular na programa, ginagamit nito ang address na ipinasa sa macro na ito bilang "pinagmulan ng katotohanan" at awtomatikong ibe-verify na ang lahat ng CPI na ginawa gamit ang CPI module nito ay nagta-target sa program id na ito.
 
-Bagama't sa pangunahing walang pinagkaiba sa mga manu-manong pagsusuri sa programa, ang paggamit ng mga module ng CPI ay nag-iwas sa posibilidad na makalimutang magsagawa ng pagsusuri ng programa o hindi sinasadyang mag-type ng maling program ID kapag na-hard-coding ito.
+Bagama't sa pangunahing walang pinagkaiba sa mga manu-manong program checks, ang paggamit ng mga module ng CPI ay nag-iwas sa posibilidad na makalimutang magsagawa ng program check o hindi sinasadyang mag-type ng maling program ID kapag na-hard-coding ito.
 
 Ang programa sa ibaba ay nagpapakita ng isang halimbawa ng paggamit ng isang CPI module para sa SPL Token Program upang maisagawa ang paglilipat na ipinakita sa mga nakaraang halimbawa.
 
@@ -169,20 +169,20 @@ Pansinin na mayroong tatlong mga programa:
 2. `character-metadata`
 3. `pekeng-metadata`
 
-Bukod pa rito, mayroon nang pagsubok sa direktoryo ng `mga pagsubok`.
+Bukod pa rito, mayroon nang pagsubok sa directory ng `tests`.
 
-Ang unang program, `gameplay`, ay ang isa na direktang ginagamit ng aming pagsubok. Tingnan ang programa. Mayroon itong dalawang tagubilin:
+Ang unang program, `gameplay`, ay ang isa na direktang ginagamit ng aming tests. Tingnan ang programa. Mayroon itong dalawang instructions:
 
-1. `create_character_insecure` - lumilikha ng bagong character at CPI sa metadata program para i-set up ang mga paunang katangian ng character
-2. `battle_insecure` - pinaghahalo ang dalawang karakter laban sa isa't isa, na nagtatalaga ng "panalo" sa karakter na may pinakamataas na katangian
+1. `create_character_insecure` - lumilikha ng bagong character at CPI sa metadata program para i-set up ang mga paunang attributes ng character
+2. `battle_insecure` - pinaghahalo ang dalawang karakter laban sa isa't isa, na nagtatalaga ng "panalo" sa karakter na may pinakamataas na attributes
 
 Ang pangalawang programa, ang `character-metadata`, ay nilalayong maging "naaprubahan" na programa para sa paghawak ng metadata ng character. Tingnan ang programang ito. Mayroon itong iisang tagubilin para sa `create_metadata` na gumagawa ng bagong PDA at nagtatalaga ng pseudo-random na value sa pagitan ng 0 at 20 para sa kalusugan at kapangyarihan ng character.
 
 Ang huling program, ang `fake-metadata` ay isang "pekeng" metadata program na nilalayong ilarawan kung ano ang maaaring gawin ng isang attacker para samantalahin ang aming `gameplay` program. Ang program na ito ay halos magkapareho sa `character-metadata` na programa, ito lang ang nagtatalaga ng paunang kalusugan at kapangyarihan ng isang character na maging maximum na pinapayagan: 255.
 
-### 2. Subukan ang pagtuturo ng `create_character_insecure`
+### 2. I-test ang instruction ng `create_character_insecure`
 
-Mayroon nang pagsubok sa direktoryo ng `mga pagsubok` para dito. Mahaba ito, ngunit maglaan ng isang minuto upang tingnan ito bago natin ito pag-usapan nang magkasama:
+Mayroon nang test sa direktoryo ng `tests` para dito. Mahaba ito, ngunit maglaan ng isang minuto upang tingnan ito bago natin ito pag-usapan nang magkasama:
 
 ```ts
 it("Insecure instructions allow attacker to win every time", async () => {
@@ -237,15 +237,15 @@ it("Insecure instructions allow attacker to win every time", async () => {
 })
 ```
 
-Ang pagsubok na ito ay epektibong dumaan sa senaryo kung saan ang isang regular na manlalaro at isang umaatake ay parehong gumagawa ng kanilang mga karakter. Ang umaatake lang ang pumasa sa program ID ng pekeng metadata program kaysa sa aktwal na metadata program. At dahil ang pagtuturo ng `create_character_insecure` ay walang mga pagsusuri sa programa, nagsasagawa pa rin ito.
+Ang test na ito ay epektibong dumaan sa senaryo kung saan ang isang regular na manlalaro at isang umaatake ay parehong gumagawa ng kanilang mga karakter. Ang umaatake lang ang pumasa sa program ID ng pekeng metadata program kaysa sa aktwal na metadata program. At dahil ang instruction ng `create_character_insecure` ay walang mga program checks, mag e-executes pa rin ito.
 
 Ang resulta ay ang regular na karakter ay may naaangkop na dami ng kalusugan at kapangyarihan: bawat isa ay may halaga sa pagitan ng 0 at 20. Ngunit ang kalusugan at kapangyarihan ng umaatake ay bawat isa ay 255, na ginagawang hindi matatalo ang umaatake.
 
 Kung hindi mo pa nagagawa, patakbuhin ang `anchor test` upang makita na ang pagsubok na ito sa katunayan ay kumikilos tulad ng inilarawan.
 
-### 3. Gumawa ng `create_character_secure` na pagtuturo
+### 3. Gumawa ng `create_character_secure` na instruction
 
-Ayusin natin ito sa pamamagitan ng paggawa ng secure na pagtuturo para sa paggawa ng bagong character. Dapat ipatupad ng tagubiling ito ang mga wastong pagsusuri ng program at gamitin ang `cpi` crate ng program na `character-metadata` upang gawin ang CPI sa halip na gamitin lamang ang `invoke`.
+Ayusin natin ito sa pamamagitan ng paggawa ng secure na instruction para sa paggawa ng bagong character. Dapat ipatupad ng tagubiling ito ang mga wastong program checks  at gamitin ang `cpi` crate ng program na `character-metadata` upang gawin ang CPI sa halip na gamitin lamang ang `invoke`.
 
 Kung gusto mong subukan ang iyong mga kakayahan, subukan ito sa iyong sarili bago magpatuloy.
 
@@ -287,7 +287,7 @@ pub struct CreateCharacterSecure<'info> {
 }
 ```
 
-Panghuli, idinaragdag namin ang tagubiling `create_character_secure`. Ito ay magiging katulad ng dati ngunit gagamitin ang buong pagpapagana ng Anchor CPI sa halip na direktang gamitin ang `invoke`:
+Panghuli, idinaragdag namin ang instruction `create_character_secure`. Ito ay magiging katulad ng dati ngunit gagamitin ang buong functionality ng Anchor CPI sa halip na direktang gamitin ang `invoke`:
 
 ```rust
 pub fn create_character_secure(ctx: Context<CreateCharacterSecure>) -> Result<()> {
@@ -312,9 +312,9 @@ pub fn create_character_secure(ctx: Context<CreateCharacterSecure>) -> Result<()
 }
 ```
 
-### 4. Subukan ang `create_character_secure`
+### 4. I-test ang `create_character_secure`
 
-Ngayong mayroon na tayong ligtas na paraan ng pagsisimula ng bagong karakter, gumawa tayo ng bagong pagsubok. Kailangan lang ng pagsubok na ito na subukang simulan ang karakter ng umaatake at asahan ang isang error na itatapon.
+Ngayong mayroon na tayong ligtas na paraan ng initializing ng bagong karakter, gumawa tayo ng bagong test. Kailangan lang ng test na ito na subukang i-initialize ang karakter ng umaatake at asahan ang isang error na itatapon.
 
 ```ts
 it("Secure character creation doesn't allow fake program", async () => {
@@ -348,12 +348,12 @@ Iyon lang ang kailangan mong gawin para maprotektahan laban sa mga di-makatwiran
 
 Maaaring may mga pagkakataon kung saan gusto mo ng higit na kakayahang umangkop sa mga CPI ng iyong programa. Tiyak na hindi ka namin pipigilan sa pag-arkitekto ng program na kailangan mo, ngunit mangyaring gawin ang lahat ng posibleng pag-iingat upang matiyak na walang mga kahinaan sa iyong programa.
 
-Kung gusto mong tingnan ang code ng panghuling solusyon, mahahanap mo ito sa sangay ng `solusyon` ng [parehong repositoryo](https://github.com/Unboxed-Software/solana-arbitrary-cpi/tree/solution).
+Kung gusto mong tingnan ang code ng panghuling solusyon, mahahanap mo ito sa branch ng `solusyon` ng [parehong repositoryo](https://github.com/Unboxed-Software/solana-arbitrary-cpi/tree/solution).
 
 # Hamon
 
 Tulad ng iba pang mga aralin sa modyul na ito, ang iyong pagkakataon na magsanay sa pag-iwas sa pagsasamantala sa seguridad na ito ay nakasalalay sa pag-audit ng iyong sarili o iba pang mga programa.
 
-Maglaan ng ilang oras upang suriin ang hindi bababa sa isang programa at tiyakin na ang mga pagsusuri sa programa ay nasa lugar para sa bawat programa na ipinasa sa mga tagubilin, lalo na ang mga na-invoke sa pamamagitan ng CPI.
+Maglaan ng ilang oras upang suriin ang hindi bababa sa isang programa at tiyakin na ang mga program checks ay nasa lugar para sa bawat programa na ipinasa sa mga instructions, lalo na ang mga na-invoke sa pamamagitan ng CPI.
 
 Tandaan, kung makakita ka ng bug o pagsasamantala sa programa ng ibang tao, mangyaring alertuhan sila! Kung makakita ka ng isa sa iyong sariling programa, siguraduhing i-patch ito kaagad.
