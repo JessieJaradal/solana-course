@@ -8,8 +8,8 @@ objectives:
 
 # TL;DR
 
-- Kapag ang isang pagtuturo ay nangangailangan ng dalawang nababagong account ng parehong uri, ang isang attacker ay maaaring pumasa sa parehong account nang dalawang beses, na nagiging sanhi ng account na ma-mutate sa hindi sinasadyang mga paraan.
-- Upang tingnan ang mga duplicate na mutable na account sa Rust, ihambing lang ang mga pampublikong key ng dalawang account at maglagay ng error kung pareho ang mga ito.
+- Kapag ang isang instruction ay nangangailangan ng dalawang nababagong account ng parehong type, ang isang attacker ay maaaring pumasa sa parehong account nang dalawang beses, na nagiging sanhi ng account na ma-mutate sa hindi sinasadyang mga paraan.
+- Upang tingnan ang mga duplicate na mutable na account sa Rust, ihambing lang ang mga public key ng dalawang account at maglagay ng error kung pareho ang mga ito.
 
   ```rust
   if ctx.accounts.account_one.key() == ctx.accounts.account_two.key() {
@@ -19,15 +19,15 @@ objectives:
 
 - Sa Anchor, maaari mong gamitin ang `constraint` upang magdagdag ng isang tahasang pagpilit sa isang account na sinusuri na hindi ito katulad ng isa pang account.
 
-# Pangkalahatang-ideya
+# Overview
 
-Ang mga Duplicate na Mutable na Account ay tumutukoy sa isang pagtuturo na nangangailangan ng dalawang nababagong account ng parehong uri. Kapag nangyari ito, dapat mong patunayan na ang dalawang account ay magkaiba upang maiwasan ang parehong account na maipasa sa pagtuturo nang dalawang beses.
+Ang mga Duplicate na Mutable na Account ay tumutukoy sa isang instruction na nangangailangan ng dalawang nababagong account ng parehong type. Kapag nangyari ito, dapat mong patunayan na ang dalawang account ay magkaiba upang maiwasan ang parehong account na maipasa sa instruction nang dalawang beses.
 
 Dahil itinuring ng programa ang bawat account bilang hiwalay, ang pagpasa sa parehong account nang dalawang beses ay maaaring magresulta sa pag-mutate sa pangalawang account sa mga hindi sinasadyang paraan. Ito ay maaaring magresulta sa napakaliit na isyu, o mga sakuna - ito ay talagang depende sa kung anong data ang binago ng code at kung paano ginagamit ang mga account na ito. Anuman, ito ay isang kahinaan na dapat malaman ng lahat ng mga developer.
 
-### Walang check
+### No check
 
-Halimbawa, isipin ang isang program na nag-a-update ng field ng `data` para sa `user_a` at `user_b` sa isang pagtuturo. Ang value na itinakda ng tagubilin para sa `user_a` ay iba sa `user_b`. Nang hindi nabe-verify na magkaiba ang `user_a` at `user_b`, ia-update ng program ang field ng `data` sa `user_a` account, pagkatapos ay ia-update ang field ng `data` sa pangalawang pagkakataon na may ibang value sa ilalim ng pagpapalagay na `user_b` ay isang hiwalay na account.
+Halimbawa, isipin ang isang program na nag-a-update ng field ng `data` para sa `user_a` at `user_b` sa isang instuction. Ang value na itinakda ng instuction para sa `user_a` ay iba sa `user_b`. Nang hindi nabe-verify na magkaiba ang `user_a` at `user_b`, ia-update ng program ang field ng `data` sa `user_a` account, pagkatapos ay ia-update ang field ng `data` sa pangalawang pagkakataon na may ibang value sa ilalim ng pagpapalagay na `user_b` ay isang hiwalay na account.
 
 Makikita mo ang halimbawang ito sa code sa ibaba. Walang tseke upang i-verify na ang `user_a` at `user_b` ay hindi magkaparehong account. Ang pagpasa sa parehong account para sa `user_a` at `user_b` ay magreresulta sa field ng `data` para sa account na itatakda sa `b` kahit na ang layunin ay itakda ang parehong mga value na `a` at `b` sa magkahiwalay na account. Depende sa kung ano ang kinakatawan ng `data`, ito ay maaaring isang maliit na hindi sinasadyang side-effect, o maaari itong mangahulugan ng isang matinding panganib sa seguridad. ang pagpapahintulot sa `user_a` at `user_b` na maging iisang account ay maaaring magresulta sa
 
@@ -62,9 +62,9 @@ pub struct User {
 }
 ```
 
-### Magdagdag ng pagtuturo ng check in
+### Magdagdag ng check in sa instruction
 
-Para ayusin ang problemang ito sa plan Rust, magdagdag lang ng check sa instruction logic para ma-verify na ang public key ng `user_a` ay hindi pareho sa public key ng `user_b`, na nagbabalik ng error kung pareho sila.
+Para ayusin ang problemang ito sa plan Rust, magdagdag lang ng check sa instruction logic para ma-verify na ang public key ng `user_a` ay hindi pareho sa public key ng `user_b`, na nag-return ng error kung pareho sila.
 
 ```rust
 if ctx.accounts.user_a.key() == ctx.accounts.user_b.key() {
@@ -110,11 +110,11 @@ pub struct User {
 
 ### Gamitin ang Anchor `constraint`
 
-Ang isang mas mahusay na solusyon kung gumagamit ka ng Anchor ay idagdag ang tseke sa struct ng pagpapatunay ng account sa halip na ang lohika ng pagtuturo.
+Ang isang mas mahusay na solusyon kung gumagamit ka ng Anchor ay idagdag ang tseke sa struct ng pagpapatunay ng account sa halip na ang instruction logic.
 
 Maaari mong gamitin ang `#[account(..)]` attribute macro at ang `constraint` na keyword upang magdagdag ng manual na pagpilit sa isang account. Susuriin ng keyword na `constraint` kung ang expression na kasunod ay nagsusuri sa true o false, na nagbabalik ng error kung ang expression ay nage-evaluate sa false.
 
-Ang halimbawa sa ibaba ay naglilipat ng tseke mula sa lohika ng pagtuturo patungo sa struct ng pagpapatunay ng account sa pamamagitan ng pagdaragdag ng `constraint` sa `#[account(..)]` attribute.
+Ang halimbawa sa ibaba ay naglilipat ng tseke mula sa instruction logic patungo sa struct ng account validation sa pamamagitan ng pagdaragdag ng `constraint` sa `#[account(..)]` attribute.
 
 ```rust
 use anchor_lang::prelude::*;
@@ -150,21 +150,21 @@ pub struct User {
 
 # Demo
 
-Magsanay tayo sa pamamagitan ng paglikha ng isang simpleng programang Rock Paper Scissors upang ipakita kung paano maaaring magdulot ng hindi natukoy na gawi sa loob ng iyong programa ang hindi pagsuri para sa mga duplicate na nababagong account.
+Magsanay tayo sa pamamagitan ng pag-create ng isang simpleng programang Rock Paper Scissors upang ipakita kung paano maaaring magdulot ng hindi natukoy na behavior sa loob ng iyong programa ang hindi pag-che-check ng mga duplicate mutable accounts.
 
-Ang program na ito ay magsisimula ng mga account ng "manlalaro" at magkakaroon ng hiwalay na pagtuturo na nangangailangan ng dalawang account ng manlalaro upang kumatawan sa pagsisimula ng isang laro ng gunting na batong papel.
+Ang program na ito ay magsisimula ng mga account ng "manlalaro" at magkakaroon ng hiwalay na instruction na nangangailangan ng dalawang account ng manlalaro upang kumatawan sa pagsisimula ng isang laro ng gunting na batong papel.
 
-- Isang `initialize` na tagubilin upang simulan ang isang `PlayerState` account
-- Isang `rock_paper_scissors_shoot_insecure` na pagtuturo na nangangailangan ng dalawang `PlayerState` na account, ngunit hindi sinisigurado kung magkaiba ang mga account na ipinasa sa pagtuturo
-- Isang `rock_paper_scissors_shoot_secure` na pagtuturo na kapareho ng `rock_paper_scissors_shoot_insecure` na pagtuturo ngunit nagdaragdag ng hadlang na tumitiyak na magkaiba ang dalawang account ng manlalaro
+- Isang `initialize` na instruction upang simulan ang isang `PlayerState` account
+- Isang `rock_paper_scissors_shoot_insecure` na instruction na nangangailangan ng dalawang `PlayerState` na account, ngunit hindi sinisigurado kung magkaiba ang mga account na ipinasa sa instruction
+- Isang `rock_paper_scissors_shoot_secure` na instruction na kapareho ng `rock_paper_scissors_shoot_insecure` na instruction ngunit nagdaragdag ng constraint na tumitiyak na magkaiba ang dalawang account ng manlalaro
 
 ### 1. Panimula
 
 Para makapagsimula, i-download ang starter code sa `starter` branch ng [repository na ito](https://github.com/unboxed-software/solana-duplicate-mutable-accounts/tree/starter). Kasama sa starter code ang isang program na may dalawang tagubilin at ang boilerplate setup para sa test file.
 
-Ang `initialize` na tagubilin ay nagpapasimula ng bagong `PlayerState` account na nag-iimbak ng pampublikong key ng isang player at isang `choice` na field na nakatakda sa `Wala`.
+Ang `initialize` na instruction ay nagpapasimula ng bagong `PlayerState` account na nag-iimbak ng public key ng isang player at isang `choice` na field na naka-set sa `None`.
 
-Ang pagtuturo ng `rock_paper_scissors_shoot_insecure` ay nangangailangan ng dalawang `PlayerState` na account at nangangailangan ng pagpipilian mula sa `RockPaperScissors` enum para sa bawat manlalaro, ngunit hindi sinisigurado na ang mga account na ipinasa sa pagtuturo ay iba. Nangangahulugan ito na ang isang account ay maaaring gamitin para sa parehong `PlayerState` na mga account sa pagtuturo.
+Ang instruction ng `rock_paper_scissors_shoot_insecure` ay nangangailangan ng dalawang `PlayerState` na account at nangangailangan ng pagpipilian mula sa `RockPaperScissors` enum para sa bawat manlalaro, ngunit hindi sinisigurado na ang mga account na ipinasa sa instruction ay iba. Nangangahulugan ito na ang isang account ay maaaring gamitin para sa parehong `PlayerState` na mga account sa instruction.
 
 ```rust
 use anchor_lang::prelude::*;
@@ -229,11 +229,11 @@ pub enum RockPaperScissors {
 }
 ```
 
-### 2. Subukan ang pagtuturo ng `rock_paper_scissors_shoot_insecure`
+### 2. I-test ang `rock_paper_scissors_shoot_insecure` instruction
 
-Kasama sa test file ang code para i-invoke ang `initialize` na pagtuturo nang dalawang beses para gumawa ng dalawang player account.
+Kasama sa test file ang code para i-invoke ang `initialize` na instruction nang dalawang beses para gumawa ng dalawang player account.
 
-Magdagdag ng test para gamitin ang `rock_paper_scissors_shoot_insecure` na pagtuturo sa pamamagitan ng pagpasa sa `playerOne.publicKey` para sa parehong `playerOne` at `playerTwo`.
+Magdagdag ng test para gamitin ang `rock_paper_scissors_shoot_insecure` na instruction sa pamamagitan ng pagpasa sa `playerOne.publicKey` para sa parehong `playerOne` at `playerTwo`.
 
 ```ts
 describe("duplicate-mutable-accounts", () => {
@@ -254,7 +254,7 @@ describe("duplicate-mutable-accounts", () => {
 })
 ```
 
-Patakbuhin ang `anchor test` upang makita na matagumpay na nakumpleto ang mga transaksyon, kahit na ang parehong account ay ginagamit bilang dalawang account sa pagtuturo. Dahil ang `playerOne` account ay ginagamit bilang parehong manlalaro sa pagtuturo, tandaan na ang `choice` na nakaimbak sa `playerOne` account ay na-overridden din at hindi tama ang itinakda bilang `gunting`.
+Patakbuhin ang `anchor test` upang makita na matagumpay na nakumpleto ang mga transaksyon, kahit na ang parehong account ay ginagamit bilang dalawang account sa instruction. Dahil ang `playerOne` account ay ginagamit bilang parehong manlalaro sa instruction, tandaan na ang `choice` na nakaimbak sa `playerOne` account ay na-overridden din at hindi tama ang itinakda bilang `gunting`.
 
 ```bash
 duplicate-mutable-accounts
@@ -265,9 +265,9 @@ duplicate-mutable-accounts
 
 Hindi lamang ang pagpapahintulot sa mga duplicate na account ay hindi gumagawa ng isang buong kahulugan para sa laro, nagdudulot din ito ng hindi natukoy na pag-uugali. Kung bubuuin pa namin ang program na ito, ang programa ay mayroon lamang isang napiling opsyon at samakatuwid ay hindi maaaring ihambing sa pangalawang opsyon. Ang laro ay magtatapos sa isang draw sa bawat oras. Hindi rin malinaw sa isang tao kung bato o gunting ang pipiliin ni `playerOne`, kaya kakaiba ang gawi ng programa.
 
-### 3. Magdagdag ng `rock_paper_scissors_shoot_secure` na pagtuturo
+### 3. Magdagdag ng `rock_paper_scissors_shoot_secure` na instruction
 
-Susunod, bumalik sa `lib.rs` at magdagdag ng `rock_paper_scissors_shoot_secure` na pagtuturo na gumagamit ng `#[account(...)]` macro para magdagdag ng karagdagang `constraint` para masuri kung magkaiba ang `player_one` at `player_two` mga account.
+Susunod, mag-return sa `lib.rs` at magdagdag ng `rock_paper_scissors_shoot_secure` na instruction na gumagamit ng `#[account(...)]` macro para magdagdag ng karagdagang `constraint` para masuri kung magkaiba ang `player_one` at `player_two` mga account.
 
 ```rust
 #[program]
@@ -298,9 +298,9 @@ pub struct RockPaperScissorsSecure<'info> {
 }
 ```
 
-### 7. Subukan ang pagtuturo ng `rock_paper_scissors_shoot_secure`
+### 7. I-test ang `rock_paper_scissors_shoot_secure` instruction
 
-Upang subukan ang tagubiling `rock_paper_scissors_shoot_secure`, gagamitin namin ang tagubilin nang dalawang beses. Una, gagamitin namin ang pagtuturo gamit ang dalawang magkaibang player na account para tingnan kung gumagana ang pagtuturo ayon sa nilalayon. Pagkatapos, gagamitin namin ang pagtuturo gamit ang `playerOne.publicKey` bilang parehong player account, na inaasahan naming mabibigo.
+Upang subukan ang tagubiling `rock_paper_scissors_shoot_secure`, gagamitin namin ang instruction nang dalawang beses. Una, gagamitin namin ang instruction gamit ang dalawang magkaibang player na account para tingnan kung gumagana ang instruction ayon sa nilalayon. Pagkatapos, gagamitin namin ang instruction gamit ang `playerOne.publicKey` bilang parehong player account, na inaasahan naming mabibigo.
 
 ```ts
 describe("duplicate-mutable-accounts", () => {
@@ -337,7 +337,7 @@ describe("duplicate-mutable-accounts", () => {
 })
 ```
 
-Patakbuhin ang `anchor test` upang makita na gumagana ang pagtuturo ayon sa nilalayon at ang paggamit ng `playerOne` account ay dalawang beses na nagbabalik ng inaasahang error.
+Patakbuhin ang `anchor test` upang makita na gumagana ang instruction ayon sa nilalayon at ang paggamit ng `playerOne` account ay dalawang beses na nagbabalik ng inaasahang error.
 
 ```bash
 'Program Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS invoke [1]',
@@ -347,7 +347,7 @@ Patakbuhin ang `anchor test` upang makita na gumagana ang pagtuturo ayon sa nila
 'Program Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS failed: custom program error: 0x7d3'
 ```
 
-Ang simpleng pagpilit lang ang kailangan para isara ang butas na ito. Bagama't medyo gawa-gawa, ang halimbawang ito ay naglalarawan ng kakaibang gawi na maaaring mangyari kung isusulat mo ang iyong programa sa ilalim ng pagpapalagay na ang dalawang magkaparehong uri na account ay magiging magkaibang mga pagkakataon ng isang account ngunit hindi tahasang isulat ang hadlang na iyon sa iyong programa. Palaging isipin ang pag-uugali na iyong inaasahan mula sa programa at kung iyon ay tahasan.
+Ang simpleng pagpilit lang ang kailangan para isara ang butas na ito. Bagama't medyo gawa-gawa, ang halimbawang ito ay naglalarawan ng kakaibang gawi na maaaring mangyari kung isusulat mo ang iyong programa sa ilalim ng pagpapalagay na ang dalawang magkaparehong type na account ay magiging magkaibang mga pagkakataon ng isang account ngunit hindi tahasang isulat ang hadlang na iyon sa iyong programa. Palaging isipin ang pag-uugali na iyong inaasahan mula sa programa at kung iyon ay tahasan.
 
 Kung gusto mong tingnan ang code ng panghuling solusyon, mahahanap mo ito sa sangay ng `solusyon` ng [repository](https://github.com/Unboxed-Software/solana-duplicate-mutable-accounts/tree/solution).
 
@@ -355,6 +355,6 @@ Kung gusto mong tingnan ang code ng panghuling solusyon, mahahanap mo ito sa san
 
 Tulad ng iba pang mga aralin sa modyul na ito, ang iyong pagkakataon na magsanay sa pag-iwas sa pagsasamantala sa seguridad na ito ay nakasalalay sa pag-audit ng iyong sarili o iba pang mga programa.
 
-Maglaan ng ilang oras upang suriin ang hindi bababa sa isang programa at tiyaking ang anumang mga tagubilin na may dalawang parehong-type na nababagong account ay wastong napipigilan upang maiwasan ang mga duplicate.
+Maglaan ng ilang oras upang suriin ang hindi bababa sa isang programa at tiyaking ang anumang mga instructions na may same-typed mutable accounts na nababagong account ay wastong constrained upang maiwasan ang mga duplicate.
 
 Tandaan, kung makakita ka ng bug o pagsasamantala sa programa ng ibang tao, mangyaring alertuhan sila! Kung makakita ka ng isa sa iyong sariling programa, siguraduhing i-patch ito kaagad.
