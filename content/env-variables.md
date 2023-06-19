@@ -9,18 +9,18 @@ objectives:
 
 # TL;DR
 
-- Walang mga "out of the box" na solusyon para sa paglikha ng mga natatanging kapaligiran sa isang on-chain na programa, ngunit makakamit mo ang isang bagay na katulad ng mga variable ng kapaligiran kung magiging malikhain ka.
-- Maaari mong gamitin ang attribute na `cfg` na may **Mga tampok na Rust** (`#[cfg(feature = ...)]`) upang magpatakbo ng ibang code o magbigay ng iba't ibang mga value ng variable batay sa ibinigay na feature na Rust. _Nangyayari ito sa oras ng pag-compile at hindi ka pinapayagang magpalit ng mga halaga pagkatapos ma-deploy ang isang programa_.
+- Walang mga "out of the box" na solusyon para sa paglikha ng mga distinct environments sa isang on-chain na program, ngunit makakamit mo ang isang bagay na katulad ng mga environment variables kung magiging malikhain ka.
+- Maaari mong gamitin ang attribute na `cfg` na may **Rust features** (`#[cfg(feature = ...)]`) upang magpatakbo ng ibang code o magbigay ng iba't ibang mga value ng variable batay sa ibinigay na feature na Rust. _Nangyayari ito sa oras ng pag-compile at hindi ka pinapayagang magpalit ng mga halaga pagkatapos ma-deploy ang isang programa_.
 - Katulad nito, maaari mong gamitin ang `cfg!` **macro** upang mag-compile ng iba't ibang mga path ng code batay sa mga feature na pinagana.
-- Bilang kahalili, makakamit mo ang isang bagay na katulad ng mga variable ng kapaligiran na maaaring mabago pagkatapos ng pag-deploy sa pamamagitan ng paggawa ng mga account at tagubilin na maa-access lamang ng awtoridad sa pag-upgrade ng programa.
+- Bilang kahalili, makakamit mo ang isang bagay na katulad ng mga variable ng kapaligiran na maaaring mabago pagkatapos ng pag-deploy sa pamamagitan ng paggawa ng mga account at instruction na maa-access lamang ng awtoridad sa pag-upgrade ng programa.
 
-# Pangkalahatang-ideya
+# Overview
 
-Ang isa sa mga paghihirap na kinakaharap ng mga inhinyero sa lahat ng uri ng software development ay ang pagsulat ng masusubok na code at paglikha ng mga natatanging kapaligiran para sa lokal na pag-unlad, pagsubok, produksyon, atbp.
+Ang isa sa mga paghihirap na kinakaharap ng mga engineers sa lahat ng types ng software development ay ang pagsulat ng masusubok na code at paglikha ng mga distinct environments para sa local development, testing, production, etc.
 
-Maaari itong maging partikular na mahirap sa pagbuo ng programa ng Solana. Halimbawa, isipin ang paggawa ng NFT staking program na nagbibigay ng reward sa bawat staked NFT ng 10 reward token bawat araw. Paano mo masusubok ang kakayahang mag-claim ng mga reward kapag tumatakbo ang mga pagsubok sa loob ng ilang daang millisecond, na halos hindi sapat ang haba para makakuha ng mga reward?
+Maaari itong maging partikular na mahirap sa pagbuo ng programa ng Solana. Halimbawa, isipin ang paggawa ng NFT staking program na nagbibigay ng reward sa bawat staked NFT ng 10 reward token bawat araw. Paano mo ma-itetest ang kakayahang mag-claim ng mga reward kapag tumatakbo ang mga tests sa loob ng ilang daang millisecond, na halos hindi sapat ang haba para makakuha ng mga reward?
 
-Niresolba ng tradisyunal na web development ang ilan dito gamit ang mga variable ng kapaligiran na ang mga halaga ay maaaring mag-iba sa bawat natatanging "kapaligiran." Sa kasalukuyan, walang pormal na konsepto ng mga variable ng kapaligiran sa isang programa ng Solana. Kung mayroon, magagawa mo lang ito upang ang mga reward sa iyong kapaligiran sa pagsubok ay 10,000,000 token bawat araw at magiging mas madaling subukan ang kakayahang mag-claim ng mga reward.
+Niresolba ng tradisyunal na web development ang ilan dito gamit ang mga variable ng kapaligiran na ang mga halaga ay maaaring mag-iba sa bawat ndistinct "environment." Sa kasalukuyan, walang pormal na konsepto ng mga variable ng environment sa isang programa ng Solana. Kung mayroon, magagawa mo lang ito upang ang mga reward sa iyong environment sa test ay 10,000,000 token bawat araw at magiging mas madaling subukan ang kakayahang mag-claim ng mga reward.
 
 Sa kabutihang palad, makakamit mo ang katulad na paggana kung magiging malikhain ka. Ang pinakamahusay na diskarte ay marahil isang kumbinasyon ng dalawang bagay:
 
@@ -29,7 +29,7 @@ Sa kabutihang palad, makakamit mo ang katulad na paggana kung magiging malikhain
 
 ## Mga flag ng tampok na kalawang
 
-Ang isa sa mga pinakasimpleng paraan upang lumikha ng mga kapaligiran ay ang paggamit ng mga tampok na Rust. Tinutukoy ang mga feature sa `[features]` table ng file ng `Cargo.toml` ng program. Maaari kang tumukoy ng maraming feature para sa iba't ibang sitwasyon ng paggamit.
+Ang isa sa mga pinakasimpleng paraan upang lumikha ng mga environments ay ang paggamit ng mga feature na Rust. Tinutukoy ang mga feature sa `[features]` table ng file ng `Cargo.toml` ng program. Maaari kang tumukoy ng maraming feature para sa iba't ibang sitwasyon ng paggamit.
 
 ```toml
 [features]
@@ -37,7 +37,7 @@ feature-one = []
 feature-two = []
 ```
 
-Mahalagang tandaan na ang nasa itaas ay tumutukoy lamang sa isang tampok. Upang paganahin ang isang tampok kapag sinusubukan ang iyong programa, maaari mong gamitin ang `--features` na flag gamit ang command na `anchor test`.
+Mahalagang tandaan na ang nasa itaas ay tumutukoy lamang sa isang feature. Upang paganahin ang isang feature kapag sinusubukan ang iyong programa, maaari mong gamitin ang `--features` na flag gamit ang command na `anchor test`.
 
 ```bash
 anchor test -- --features "feature-one"
@@ -49,7 +49,7 @@ Maaari ka ring tumukoy ng maraming feature sa pamamagitan ng paghihiwalay sa mga
 anchor test -- --features "feature-one", "feature-two"
 ```
 
-### Gawing conditional ang code gamit ang attribute na `cfg`
+### Make code conditional using the `cfg` attribute
 
 Sa tinukoy na feature, maaari mong gamitin ang attribute na `cfg` sa loob ng iyong code para may kundisyon na mag-compile ng code batay sa kung pinagana o hindi ang isang partikular na feature. Nagbibigay-daan ito sa iyo na isama o ibukod ang ilang partikular na code mula sa iyong programa.
 
@@ -69,9 +69,9 @@ fn function_when_not_testing() {
 
 Nagbibigay-daan ito sa iyo na paganahin o huwag paganahin ang ilang partikular na pagpapagana sa iyong Anchor program sa oras ng pag-compile sa pamamagitan ng pagpapagana o hindi pagpapagana sa feature.
 
-Ito ay hindi isang kahabaan upang isipin na gustong gamitin ito upang lumikha ng natatanging "mga kapaligiran" para sa iba't ibang mga deployment ng programa. Halimbawa, hindi lahat ng token ay may mga deployment sa parehong Mainnet at Devnet. Kaya maaari mong i-hard-code ang isang token address para sa mga deployment ng Mainnet ngunit hard-code ang ibang address para sa mga deployment ng Devnet at Localnet. Sa ganoong paraan maaari kang mabilis na lumipat sa pagitan ng iba't ibang mga kapaligiran nang hindi nangangailangan ng anumang mga pagbabago sa code mismo.
+Ito ay hindi isang kahabaan upang isipin na gustong gamitin ito upang lumikha ng distinc "environments" para sa iba't ibang mga deployment ng programa. Halimbawa, hindi lahat ng token ay may mga deployment sa parehong Mainnet at Devnet. Kaya maaari mong i-hard-code ang isang token address para sa mga deployment ng Mainnet ngunit hard-code ang ibang address para sa mga deployment ng Devnet at Localnet. Sa ganoong paraan maaari kang mabilis na lumipat sa pagitan ng iba't ibang mga kapaligiran nang hindi nangangailangan ng anumang mga pagbabago sa code mismo.
 
-Ang code sa ibaba ay nagpapakita ng isang halimbawa ng isang Anchor program na gumagamit ng `cfg` attribute para magsama ng iba't ibang token address para sa lokal na pagsubok kumpara sa iba pang deployment:
+Ang code sa ibaba ay nagpapakita ng isang halimbawa ng isang Anchor program na gumagamit ng `cfg` attribute para magsama ng iba't ibang token address para sa lokal na test kumpara sa iba pang deployment:
 
 ```rust
 use anchor_lang::prelude::*;
@@ -121,11 +121,11 @@ pub struct Initialize<'info> {
 
 Sa halimbawang ito, ginagamit ang attribute na `cfg` para may kundisyon na mag-compile ng dalawang magkaibang pagpapatupad ng module na `constants`. Nagbibigay-daan ito sa program na gumamit ng iba't ibang mga halaga para sa pare-parehong `USDC_MINT_PUBKEY` depende kung pinagana o hindi ang feature na `local-testing`.
 
-### Gawing kondisyonal ang code gamit ang `cfg!` na macro
+### Make code conditional using the `cfg!` macro
 
 Katulad ng attribute na `cfg`, binibigyang-daan ka ng `cfg!` **macro** sa Rust na suriin ang mga value ng ilang mga flag ng configuration sa runtime. Maaari itong maging kapaki-pakinabang kung gusto mong magsagawa ng iba't ibang mga path ng code depende sa mga halaga ng ilang mga flag ng configuration.
 
-Magagamit mo ito para i-bypass o isaayos ang mga hadlang batay sa oras na kinakailangan sa NFT staking app na binanggit namin dati. Kapag nagpapatakbo ng pagsubok, maaari kang magsagawa ng code na nagbibigay ng mas mataas na staking reward kung ihahambing sa pagpapatakbo ng production build.
+Magagamit mo ito para i-bypass o isaayos ang mga constraints batay sa oras na kinakailangan sa NFT staking app na binanggit namin dati. Kapag nagpapatakbo ng tests, maaari kang magsagawa ng code na nagbibigay ng mas mataas na staking reward kung ihahambing sa pagpapatakbo ng production build.
 
 Upang gamitin ang `cfg!` na macro sa isang Anchor program, magdagdag ka lang ng `cfg!` na macro call sa conditional statement na pinag-uusapan:
 
@@ -151,7 +151,7 @@ pub mod my_program {
 
 Sa halimbawang ito, ginagamit ng `test_function` ang `cfg!` na macro upang suriin ang halaga ng feature na `local-testing` sa runtime. Kung ang feature na `local-testing` ay pinagana, ang unang code path ay isasagawa. Kung ang feature na `local-testing` ay hindi pinagana, ang pangalawang code path ang ipapatupad sa halip.
 
-## Mga tagubilin para sa admin lamang
+### Admin-only instructions
 
 Ang mga feature na flag ay mahusay para sa pagsasaayos ng mga value at path ng code sa compilation, ngunit hindi ito nakakatulong nang malaki kung kailangan mong ayusin ang isang bagay pagkatapos mong i-deploy ang iyong program.
 
@@ -163,13 +163,13 @@ Susunod, kailangan mong tiyakin na ang account na ito ay maa-update lang ng ilan
 
 Buweno, may ilang mga solusyon, bawat isa ay may sariling mga pakinabang at kawalan:
 
-1. Hard-code ang isang admin na pampublikong key na maaaring magamit sa mga hadlang sa pagtuturo lamang ng admin.
+1. Hard-code ang isang admin na public key na maaaring magamit sa mga constraints sa instruction lamang ng admin.
 2. Gawing admin ang awtoridad sa pag-upgrade ng programa.
-3. I-store ang admin sa config account at itakda ang unang admin sa isang `initialize` na pagtuturo.
+3. I-store ang admin sa config account at itakda ang unang admin sa isang `initialize` na instruction.
 
-### Lumikha ng config account
+### Mag-create ng config account
 
-Ang unang hakbang ay ang pagdaragdag ng tatawagin naming "config" na account sa iyong programa. Maaari mong i-customize ito upang pinakaangkop sa iyong mga pangangailangan, ngunit iminumungkahi namin ang isang pandaigdigang PDA. Sa Anchor, nangangahulugan lang iyon ng paggawa ng struct ng account at paggamit ng iisang binhi para makuha ang address ng account.
+Ang unang hakbang ay ang pagdaragdag ng tatawagin naming "config" na account sa iyong programa. Maaari mong i-customize ito upang pinakaangkop sa iyong mga pangangailangan, ngunit iminumungkahi namin ang isang global PDA. Sa Anchor, nangangahulugan lang iyon ng paggawa ng struct ng account at paggamit ng iisang seed para makuha ang address ng account.
 
 ```rust
 pub const SEED_PROGRAM_CONFIG: &[u8] = b"program_config";
@@ -185,11 +185,11 @@ Ang halimbawa sa itaas ay nagpapakita ng hypothetical config account para sa hal
 
 Gamit ang tinukoy na config account, siguraduhin lang na ang natitirang bahagi ng iyong code ay tumutukoy sa account na ito kapag ginagamit ang mga halagang ito. Sa ganoong paraan, kung ang data sa account ay nagbabago, ang programa ay umaangkop nang naaayon.
 
-### Limitahan ang mga update sa config sa mga hard-coded na admin
+### Constrain config updates to hard-coded admins
 
-Kakailanganin mo ng paraan para masimulan at i-update ang data ng config account. Nangangahulugan iyon na kailangan mong magkaroon ng isa o higit pang mga tagubilin na ang isang admin lang ang makakatawag. Ang pinakasimpleng paraan upang gawin ito ay ang pag-hard-code ng pampublikong susi ng admin sa iyong code at pagkatapos ay magdagdag ng simpleng pag-check ng signer sa pagpapatunay ng account ng iyong pagtuturo na naghahambing ng lumagda sa pampublikong key na ito.
+Kakailanganin mo ng paraan para masimulan at i-update ang data ng config account. Nangangahulugan iyon na kailangan mong magkaroon ng isa o higit pang mga instructions na ang isang admin lang ang makakatawag. Ang pinakasimpleng paraan upang gawin ito ay ang pag-hard-code ng pampublikong susi ng admin sa iyong code at pagkatapos ay magdagdag ng simpleng pag-check ng signer sa pagpapatunay ng account ng iyong instruction na naghahambing ng lumagda sa public key na ito.
 
-Sa Anchor, ang pagpigil sa isang `update_program_config` na pagtuturo upang magamit lamang ng isang hard-coded na admin ay maaaring magmukhang ganito:
+Sa Anchor, ang constraining sa isang `update_program_config` na instruction upang magamit lamang ng isang hard-coded na admin ay maaaring magmukhang ganito:
 
 ```rust
 #[program]
@@ -220,20 +220,20 @@ pub struct UpdateProgramConfig<'info> {
 }
 ```
 
-Bago pa man isagawa ang logic ng pagtuturo, isasagawa ang pagsusuri upang matiyak na tumutugma ang signer ng pagtuturo sa hard-coded na `ADMIN_PUBKEY`. Pansinin na ang halimbawa sa itaas ay hindi nagpapakita ng tagubilin na nagpapasimula sa config account, ngunit dapat itong magkaroon ng katulad na mga hadlang upang matiyak na hindi masimulan ng isang attacker ang account na may mga hindi inaasahang halaga.
+Bago pa man isagawa ang logic ng pagtuturo, isasagawa ang pagsusuri upang matiyak na tumutugma ang signer ng instruction sa hard-coded na `ADMIN_PUBKEY`. Pansinin na ang halimbawa sa itaas ay hindi nagpapakita ng instruction na nagpapasimula sa config account, ngunit dapat itong magkaroon ng katulad na mga constraints upang matiyak na hindi masimulan ng isang attacker ang account na may mga hindi inaasahang halaga.
 
-Habang gumagana ang diskarteng ito, nangangahulugan din ito ng pagsubaybay sa isang admin wallet bukod pa sa pagsubaybay sa awtoridad sa pag-upgrade ng isang programa. Sa ilang higit pang mga linya ng code, maaari mo lamang paghigpitan ang isang pagtuturo na matatawag lamang ng awtoridad sa pag-upgrade. Ang tanging nakakalito na bahagi ay ang pagkuha ng awtoridad sa pag-upgrade ng isang programa upang ihambing.
+Habang gumagana ang diskarteng ito, nangangahulugan din ito ng pagsubaybay sa isang admin wallet bukod pa sa pagsubaybay sa awtoridad sa pag-upgrade ng isang programa. Sa ilang higit pang mga linya ng code, maaari mo lamang paghigpitan ang isang constraint na matatawag lamang ng awtoridad sa pag-upgrade. Ang tanging nakakalito na bahagi ay ang pagkuha ng awtoridad sa pag-upgrade ng isang programa upang ihambing.
 
-### Limitahan ang mga update sa config sa awtoridad sa pag-upgrade ng program
+### Constrain config updates to the program's upgrade authority
 
 Sa kabutihang palad, ang bawat programa ay may program data account na nagsasalin sa uri ng Anchor `ProgramData` account at mayroong field na `upgrade_authority_address`. Iniimbak mismo ng program ang address ng account na ito sa data nito sa field na `programdata_address`.
 
-Kaya bilang karagdagan sa dalawang account na kinakailangan ng pagtuturo sa hard-coded na halimbawa ng admin, ang tagubiling ito ay nangangailangan ng `program` at ang `program_data` na mga account.
+Kaya bilang karagdagan sa dalawang account na kinakailangan ng instruction sa hard-coded na halimbawa ng admin, ang instruction ito ay nangangailangan ng `program` at ang `program_data` na mga account.
 
 Pagkatapos ay kailangan ng mga account ang mga sumusunod na limitasyon:
 
-1. Isang hadlang sa `program` na tinitiyak na ang ibinigay na `program_data` account ay tumutugma sa field ng `programdata_address` ng program
-2. Isang hadlang sa `program_data` na account na tinitiyak na tumutugma ang signer ng pagtuturo sa field ng `upgrade_authority_address` ng `program_data` account.
+1. Isang constraint sa `program` na tinitiyak na ang ibinigay na `program_data` account ay tumutugma sa field ng `programdata_address` ng program
+2. Isang constraint sa `program_data` na account na tinitiyak na tumutugma ang signer ng pagtuturo sa field ng `upgrade_authority_address` ng `program_data` account.
 
 Kapag nakumpleto, ganito ang hitsura:
 
@@ -252,13 +252,13 @@ pub struct UpdateProgramConfig<'info> {
 }
 ```
 
-Muli, hindi ipinapakita ng halimbawa sa itaas ang pagtuturo na nagpapasimula sa config account, ngunit dapat itong magkaroon ng parehong mga hadlang upang matiyak na hindi masimulan ng isang attacker ang account na may mga hindi inaasahang halaga.
+Muli, hindi ipinapakita ng halimbawa sa itaas ang pagtuturo na nagpapasimula sa config account, ngunit dapat itong magkaroon ng parehong mga constraints upang matiyak na hindi masimulan ng isang attacker ang account na may mga hindi inaasahang values.
 
 Kung ito ang unang pagkakataon na narinig mo ang tungkol sa program data account, sulit na basahin ang [doc na ito ng Notion](https://www.notion.so/29780c48794c47308d5f138074dd9838) tungkol sa mga pag-deploy ng program.
 
-### Limitahan ang mga update sa config sa isang ibinigay na admin
+### Constrain config updates to a provided admin
 
-Pareho sa mga nakaraang opsyon ay medyo secure ngunit hindi rin nababaluktot. Paano kung gusto mong i-update ang admin upang maging ibang tao? Para doon, maaari mong iimbak ang admin sa config account.
+Pareho sa mga nakaraang opsyon ay medyo secure ngunit inflexible rin. Paano kung gusto mong i-update ang admin upang maging ibang tao? Para doon, maaari mong iimbak ang admin sa config account.
 
 ```rust
 pub const SEED_PROGRAM_CONFIG: &[u8] = b"program_config";
@@ -271,7 +271,7 @@ pub struct ProgramConfig {
 }
 ```
 
-Pagkatapos ay maaari mong hadlangan ang iyong mga tagubilin sa "pag-update" gamit ang isang signer check na tumutugma sa field ng `admin` ng config account.
+Pagkatapos ay maaari mong constrain ang iyong mga instructions sa "pag-update" gamit ang isang signer check na tumutugma sa field ng `admin` ng config account.
 
 ```rust
 ...
@@ -287,49 +287,49 @@ pub struct UpdateProgramConfig<'info> {
 }
 ```
 
-Mayroong isang catch dito: sa oras sa pagitan ng pag-deploy ng program at pagsisimula ng config account, _walang admin_. Nangangahulugan ito na ang pagtuturo para sa pagsisimula ng config account ay hindi mapipigilan na payagan lamang ang mga admin bilang mga tumatawag. Nangangahulugan iyon na maaari itong tawagan ng isang umaatake na naghahanap upang itakda ang kanilang sarili bilang admin.
+Mayroong isang catch dito: sa oras sa pagitan ng pag-deploy ng program at pagsisimula ng config account, _walang admin_. Nangangahulugan ito na ang instruction para sa initializing ng config account ay hindi constrained na payagan ang mga admin lamang maging mga callers. Nangangahulugan iyon na maaari itong tawagan ng isang attacker na naghahanap upang itakda ang kanilang sarili bilang admin.
 
-Bagama't mukhang masama ito, nangangahulugan lang ito na hindi mo dapat ituring ang iyong programa bilang "na-initialize" hanggang sa ikaw mismo ang mag-initialize ng config account at ma-verify na ang admin na nakalista sa account ay kung sino ang iyong inaasahan. Kung ang iyong deployment script ay nag-deploy at pagkatapos ay agad na tatawagin ang `initialize`, napaka-malas na alam ng isang attacker ang pag-iral ng iyong program nang hindi gaanong sinusubukang gawin ang kanilang sarili bilang admin. Kung sa pamamagitan ng ilang nakakabaliw na stroke ng malas ay may isang "harang" sa iyong programa, maaari mong isara ang programa gamit ang awtoridad sa pag-upgrade at muling i-deploy.
+Bagama't mukhang masama ito, nangangahulugan lang ito na hindi mo dapat ituring ang iyong programa bilang "na-initialize" hanggang sa ikaw mismo ang mag-initialize ng config account at ma-verify na ang admin na nakalista sa account ay kung sino ang iyong inaasahan. Kung ang iyong deployment script ay nag-deploy at pagkatapos ay agad na tatawagin ang `initialize`, napaka-malas na alam ng isang attacker ang pag-iral ng iyong program nang hindi gaanong sinusubukang gawin ang kanilang sarili bilang admin. Kung sa pamamagitan ng ilang nakakabaliw na stroke ng malas ay may isang "intercepts" sa iyong programa, maaari mong isara ang programa gamit ang awtoridad sa pag-upgrade at muling i-deploy.
 
 # Demo
 
 Ngayon, sige at subukan natin ito nang magkasama. Para sa demo na ito, gagawa kami ng isang simpleng programa na nagbibigay-daan sa mga pagbabayad sa USDC. Nangongolekta ang programa ng maliit na bayad para sa pagpapadali sa paglipat. Tandaan na ito ay medyo ginawa dahil maaari kang gumawa ng mga direktang paglilipat nang walang intermediary na kontrata, ngunit ginagaya nito kung paano gumagana ang ilang kumplikadong DeFi program.
 
-Mabilis naming malalaman habang sinusubok ang aming programa na maaari itong makinabang mula sa kakayahang umangkop na ibinigay ng isang account sa pagsasaayos na kontrolado ng admin at ilang mga flag ng tampok.
+Mabilis naming malalaman habang testing ang aming programa na maaari itong makinabang mula sa kakayahang umangkop na ibinigay ng isang account sa pagsasaayos na kontrolado ng admin at ilang mga feature flags.
 
 ### 1. Panimula
 
-I-download ang starter code mula sa `starter` branch ng [repository na ito](https://github.com/Unboxed-Software/solana-admin-instructions/tree/starter). Ang code ay naglalaman ng isang programa na may iisang pagtuturo at isang pagsubok sa direktoryo ng `mga pagsubok.'
+I-download ang starter code mula sa `starter` branch ng [repository na ito](https://github.com/Unboxed-Software/solana-admin-instructions/tree/starter). Ang code ay naglalaman ng isang programa na may iisang instruction at isang test sa directory ng `tests'
 
 Mabilis nating talakayin kung paano gumagana ang programa.
 
-Ang `lib.rs` file ay may kasamang constant para sa USDC address at isang iisang `payment` na pagtuturo. Ang tagubiling `payment` ay tinatawag na function na `payment_handler` sa file na `instructions/payment.rs` kung saan nakapaloob ang logic ng pagtuturo.
+Ang `lib.rs` file ay may kasamang constant para sa USDC address at isang iisang `payment` na instruction. Ang instruction `payment` ay tinatawag na function na `payment_handler` sa file na `instructions/payment.rs` kung saan nakapaloob ang instruction logic.
 
-Ang file na `instructions/payment.rs` ay naglalaman ng parehong function na `payment_handler` pati na rin ang struct ng validation ng account na `Payment` na kumakatawan sa mga account na kinakailangan ng tagubiling `payment`. Kinakalkula ng function na `payment_handler` ang isang 1% na bayarin mula sa halaga ng pagbabayad, inililipat ang bayad sa isang itinalagang token account, at inililipat ang natitirang halaga sa tatanggap ng pagbabayad.
+Ang file na `instructions/payment.rs` ay naglalaman ng parehong function na `payment_handler` pati na rin ang struct ng validation ng account na `Payment` na kumakatawan sa mga account na kinakailangan ng instruction `payment`. Kinakalkula ng function na `payment_handler` ang isang 1% na bayarin mula sa halaga ng pagbabayad, inililipat ang bayad sa isang itinalagang token account, at inililipat ang natitirang halaga sa tatanggap ng pagbabayad.
 
-Sa wakas, ang direktoryo ng `pagsusulit` ay may iisang test file, ang `config.ts` na nag-i-invoke lang ng tagubiling `pagbabayad` at iginiit na ang kaukulang balanse ng token account ay na-debit at na-kredito nang naaayon.
+Sa wakas, ang direktoryo ng `tests` ay may iisang test file, ang `config.ts` na nag-i-invoke lang ng instruction `pagbabayad` at iginiit na ang kaukulang balanse ng token account ay na-debit at na-kredito nang naaayon.
 
 Bago tayo magpatuloy, maglaan ng ilang minuto upang maging pamilyar sa mga file na ito at sa mga nilalaman nito.
 
-### 2. Patakbuhin ang kasalukuyang pagsubok
+### 2. Run the existing test
 
-Magsimula tayo sa pagpapatakbo ng kasalukuyang pagsubok.
+Magsimula tayo sa pagpapatakbo ng kasalukuyang test.
 
 Tiyaking gumagamit ka ng `yarn` o `npm install` para i-install ang mga dependency na nakalagay sa `package.json` file. Pagkatapos ay tiyaking patakbuhin ang `listahan ng mga anchor key` upang mai-print sa console ang pampublikong key para sa iyong programa. Naiiba ito batay sa keypair na mayroon ka nang lokal, kaya kailangan mong i-update ang `lib.rs` at `Anchor.toml` para magamit ang *iyong* key.
 
-Panghuli, patakbuhin ang `anchor test` upang simulan ang pagsubok. Dapat itong mabigo sa sumusunod na output:
+Panghuli, patakbuhin ang `anchor test` upang simulan ang test. Dapat itong mabigo sa sumusunod na output:
 
 ```
 Error: failed to send transaction: Transaction simulation failed: Error processing Instruction 0: incorrect program id for instruction
 ```
 
-Ang dahilan ng error na ito ay sinusubukan naming gamitin ang mainnet USDC mint address (bilang hard-coded sa `lib.rs` file ng program), ngunit ang mint na iyon ay hindi umiiral sa lokal na kapaligiran.
+Ang dahilan ng error na ito ay sinusubukan naming gamitin ang mainnet USDC mint address (bilang hard-coded sa `lib.rs` file ng program), ngunit ang mint na iyon ay hindi umiiral sa local environment. 
 
 ### 3. Pagdaragdag ng feature na `local-testing`
 
-Upang ayusin ito, kailangan namin ng mint na magagamit namin nang lokal *at* hard-code sa programa. Dahil madalas na ni-reset ang lokal na kapaligiran sa panahon ng pagsubok, kakailanganin mong mag-imbak ng keypair na magagamit mo upang muling likhain ang parehong mint address sa bawat oras.
+Upang ayusin ito, kailangan namin ng mint na magagamit namin nang lokal *at* hard-code sa programa. Dahil madalas na ni-reset ang local environment sa panahon ng testing, kakailanganin mong mag-imbak ng keypair na magagamit mo upang muling mag-recreate ang parehong mint address sa bawat oras.
 
-Bukod pa rito, hindi mo nais na baguhin ang hard-coded na address sa pagitan ng mga lokal at mainnet na build dahil maaari itong magpakilala ng pagkakamali ng tao (at nakakainis lang). Kaya gagawa kami ng feature na `local-testing` na, kapag pinagana, gagawing gamitin ng program ang aming lokal na mint ngunit kung hindi man ay gagamitin ang production USDC mint.
+Bukod pa rito, hindi mo nais na baguhin ang hard-coded na address sa pagitan ng mga local and mainnet na builds dahil maaari itong mag-introduce ng human error (at nakakainis ito). Kaya gagawa kami ng feature na `local-testing` na, kapag pinagana, gagawing gamitin ng program ang aming local mint ngunit kung hindi man ay gagamitin ang production USDC mint.
 
 Bumuo ng bagong keypair sa pamamagitan ng pagpapatakbo ng `solana-keygen grind`. Patakbuhin ang sumusunod na command upang bumuo ng keypair na may pampublikong key na nagsisimula sa "env".
 
@@ -343,7 +343,7 @@ Sa sandaling natagpuan ang isang keypair, dapat mong makita ang isang output na 
 Wrote keypair to env9Y3szLdqMLU9rXpEGPqkjdvVn8YNHtxYNvCKXmHe.json
 ```
 
-Ang keypair ay nakasulat sa isang file sa iyong gumaganang direktoryo. Ngayong mayroon na tayong placeholder USDC address, baguhin natin ang `lib.rs` file. Gamitin ang attribute na `cfg` upang tukuyin ang pare-parehong `USDC_MINT_PUBKEY` depende sa kung ang feature na `local-testing` ay pinagana o hindi pinagana. Tandaang itakda ang pare-parehong `USDC_MINT_PUBKEY` para sa `local-testing` gamit ang nabuo sa nakaraang hakbang sa halip na kopyahin ang nasa ibaba.
+Ang keypair ay nakasulat sa isang file sa iyong gumaganang directory. Ngayong mayroon na tayong placeholder USDC address, baguhin natin ang `lib.rs` file. Gamitin ang attribute na `cfg` upang tukuyin ang pare-parehong `USDC_MINT_PUBKEY` depende sa kung ang feature na `local-testing` ay enabled or disabled. Tandaang itakda ang pare-parehong `USDC_MINT_PUBKEY` para sa `local-testing` gamit ang nabuo sa nakaraang hakbang sa halip na kopyahin ang nasa ibaba.
 
 ```rust
 use anchor_lang::prelude::*;
@@ -387,7 +387,7 @@ const mint = new anchor.web3.PublicKey(
 );
 ```
 
-Susunod, i-update ang pagsubok upang lumikha ng mint gamit ang keypair, na magbibigay-daan sa amin na muling gamitin ang parehong mint address sa tuwing tatakbo ang mga pagsubok. Tandaan na palitan ang pangalan ng file ng nabuo sa nakaraang hakbang.
+Susunod, i-update ang pagsubok upang lumikha ng mint gamit ang keypair, na magbibigay-daan sa amin na muling gamitin ang parehong mint address sa tuwing tatakbo ang mga tests. Tandaan na palitan ang pangalan ng file ng nabuo sa nakaraang hakbang.
 
 ```ts
 let mint: anchor.web3.PublicKey
@@ -412,7 +412,7 @@ before(async () => {
 ...
 ```
 
-Panghuli, patakbuhin ang pagsubok gamit ang feature na `local-testing` na pinagana.
+Panghuli, patakbuhin ang test gamit ang feature na `local-testing` na pinagana.
 
 ```
 anchor test -- --features "local-testing"
@@ -432,14 +432,14 @@ Boom. Ganoon lang, gumamit ka ng mga feature para magpatakbo ng dalawang magkaib
 
 ### 4. Program Config
 
-Ang mga tampok ay mahusay para sa pagtatakda ng iba't ibang mga halaga sa compilation, ngunit paano kung gusto mong dynamic na ma-update ang porsyento ng bayad na ginagamit ng programa? Gawin nating posible iyon sa pamamagitan ng paggawa ng Program Config account na nagbibigay-daan sa amin na i-update ang bayad nang hindi ina-upgrade ang program.
+Ang mga features ay mahusay para sa pagtatakda ng iba't ibang mga halaga sa compilation, ngunit paano kung gusto mong dynamic na ma-update ang porsyento ng bayad na ginagamit ng programa? Gawin nating posible iyon sa pamamagitan ng paggawa ng Program Config account na nagbibigay-daan sa amin na i-update ang bayad nang hindi ina-upgrade ang program.
 
 Upang magsimula, i-update muna natin ang `lib.rs` file sa:
 
 1. Magsama ng `SEED_PROGRAM_CONFIG` na pare-pareho, na gagamitin upang bumuo ng PDA para sa program config account.
-2. Magsama ng `ADMIN` constant, na gagamitin bilang isang hadlang kapag sinisimulan ang program config account. Patakbuhin ang command na `solana address` para magamit ang iyong address bilang value ng constant.
+2. Magsama ng `ADMIN` constant, na gagamitin bilang isang constraint kapag sinisimulan ang program config account. Patakbuhin ang command na `solana address` para magamit ang iyong address bilang value ng constant.
 3. Magsama ng module ng `state` na ipapatupad namin sa ilang sandali.
-4. Isama ang `initialize_program_config` at `update_program_config` na mga tagubilin at mga tawag sa kanilang "mga handler," na parehong ipapatupad natin sa isa pang hakbang.
+4. Isama ang `initialize_program_config` at `update_program_config` na mga instructions at mga tawag sa kanilang "mga handler," na parehong ipapatupad natin sa isa pang hakbang.
 
 ```rust
 use anchor_lang::prelude::*;
@@ -488,7 +488,7 @@ pub mod config {
 
 Susunod, tukuyin natin ang istraktura para sa estado ng `ProgramConfig`. Iimbak ng account na ito ang admin, ang token account kung saan ipinapadala ang mga bayarin, at ang rate ng bayad. Tutukuyin din namin ang bilang ng mga byte na kinakailangan upang maiimbak ang istrukturang ito.
 
-Gumawa ng bagong file na tinatawag na `state.rs` sa `/src` na direktoryo at idagdag ang sumusunod na code.
+Gumawa ng bagong file na tinatawag na `state.rs` sa `/src` na directory at idagdag ang sumusunod na code.
 
 ```rust
 use anchor_lang::prelude::*;
@@ -507,9 +507,9 @@ impl ProgramConfig {
 
 ### 6. Magdagdag ng Initialize Program Config Account Instruction
 
-Ngayon, gumawa tayo ng lohika ng pagtuturo para sa pagsisimula ng program config account. Dapat lang itong matawagan ng isang transaksyong nilagdaan ng `ADMIN` key at dapat itakda ang lahat ng property sa `ProgramConfig` account.
+Ngayon, gumawa tayo ng instruction logic para sa initializing ng program config account. Dapat lang itong matawagan ng isang transaksyong nilagdaan ng `ADMIN` key at dapat itakda ang lahat ng property sa `ProgramConfig` account.
 
-Gumawa ng folder na tinatawag na `program_config` sa path `/src/instructions/program_config`. Ang folder na ito ay mag-iimbak ng lahat ng mga tagubilin na nauugnay sa program config account.
+Gumawa ng folder na tinatawag na `program_config` sa path `/src/instructions/program_config`. Ang folder na ito ay mag-iimbak ng lahat ng mga instructions na nauugnay sa program config account.
 
 Sa loob ng folder na `program_config`, lumikha ng file na tinatawag na `initialize_program_config.rs` at idagdag ang sumusunod na code.
 
@@ -540,9 +540,9 @@ pub fn initialize_program_config_handler(ctx: Context<InitializeProgramConfig>) 
 }
 ```
 
-### 7. Magdagdag ng Instruksyon sa Bayarin sa Config ng Programa ng Update
+### 7. Add Update Program Config Fee Instruction
 
-Susunod, ipatupad ang lohika ng pagtuturo para sa pag-update ng config account. Ang pagtuturo ay dapat na nangangailangan na ang lumagda ay tumugma sa `admin` na nakaimbak sa `program_config` na account.
+Susunod, ipatupad ang instruction logic para sa pag-update ng config account. Ang instruction ay dapat na nangangailangan na ang signer ay tumugma sa `admin` na nakaimbak sa `program_config` na account.
 
 Sa loob ng folder na `program_config`, lumikha ng file na tinatawag na `update_program_config.rs` at idagdag ang sumusunod na code.
 
@@ -579,9 +579,9 @@ pub fn update_program_config_handler(
 }
 ```
 
-### 8. Magdagdag ng mod.rs at mag-update ng mga tagubilin.rs
+### 8. Magdagdag ng mod.rs at mag-update ng instructions.rs
 
-Susunod, ilantad natin ang mga tagapangasiwa ng pagtuturo na ginawa namin upang ang tawag mula sa `lib.rs` ay hindi magpakita ng error. Magsimula sa pamamagitan ng pagdaragdag ng file na `mod.rs` sa folder na `program_config`. Idagdag ang code sa ibaba para gawing accessible ang dalawang module, `initialize_program_config` at `update_program_config`.
+Susunod, ilantad natin ang mga tagapangasiwa ng instructions na ginawa namin upang ang tawag mula sa `lib.rs` ay hindi magpakita ng error. Magsimula sa pamamagitan ng pagdaragdag ng file na `mod.rs` sa folder na `program_config`. Idagdag ang code sa ibaba para gawing accessible ang dalawang module, `initialize_program_config` at `update_program_config`.
 
 ```rust
 mod initialize_program_config;
@@ -601,9 +601,9 @@ mod payment;
 pub use payment::*;
 ```
 
-### 9. I-update ang Tagubilin sa Pagbabayad
+### 9. I-update ang Payment Instruction
 
-Panghuli, i-update natin ang tagubilin sa pagbabayad upang matiyak na ang `fee_destination` account sa pagtuturo ay tumutugma sa `fee_destination` na nakaimbak sa program config account. Pagkatapos ay i-update ang kalkulasyon ng bayad ng pagtuturo na nakabatay sa `fee_basis_point` na nakaimbak sa program config account.
+Panghuli, i-update natin ang instruction sa pagbabayad upang matiyak na ang `fee_destination` account sa instruction ay tumutugma sa `fee_destination` na nakaimbak sa program config account. Pagkatapos ay i-update ang kalkulasyon ng bayad ng instruction na nakabatay sa `fee_basis_point` na nakaimbak sa program config account.
 
 ```rust
 use crate::state::ProgramConfig;
@@ -682,7 +682,7 @@ pub fn payment_handler(ctx: Context<Payment>, amount: u64) -> Result<()> {
 
 ### 10. Pagsubok
 
-Ngayong tapos na kaming ipatupad ang aming bagong istruktura ng pagsasaayos ng programa at mga tagubilin, magpatuloy tayo sa pagsubok sa aming na-update na programa. Upang magsimula, idagdag ang PDA para sa program config account sa test file.
+Ngayong tapos na kaming ipatupad ang aming bagong istruktura ng pagsasaayos ng programa at mga instructions, magpatuloy tayo sa testing sa ating na-update na programa. Upang magsimula, idagdag ang PDA para sa program config account sa test file.
 
 ```ts
 describe("config", () => {
@@ -694,14 +694,14 @@ describe("config", () => {
 ...
 ```
 
-Susunod, i-update ang test file na may tatlo pang pagsubok na pagsubok na:
+Susunod, i-update ang test file na may tatlo pang tests na testing that:
 
 1. Ang program config account ay nasimulan nang tama
-2. Ang tagubilin sa pagbabayad ay gumagana ayon sa nilalayon
+2. Ang instruction sa pagbabayad ay gumagana ayon sa nilalayon
 3. Ang config account ay maaaring matagumpay na ma-update ng admin
 4. Ang config account ay hindi maaaring ma-update ng iba maliban sa admin
 
-Sinisimulan ng unang pagsubok ang program config account at bini-verify na ang tamang bayad ay nakatakda at na ang tamang admin ay naka-store sa program config account.
+I-initializes ng unang test ang program config account at bini-verify na ang tamang bayad ay nakatakda at na ang tamang admin ay naka-store sa program config account.
 
 ```typescript
 it("Initialize Program Config Account", async () => {
@@ -730,7 +730,7 @@ it("Initialize Program Config Account", async () => {
 })
 ```
 
-Ang pangalawang pagsubok ay nagpapatunay na ang pagtuturo sa pagbabayad ay gumagana nang tama, na ang bayad ay ipinadala sa patutunguhan ng bayad at ang natitirang balanse ay inililipat sa tatanggap. Dito, ina-update namin ang umiiral nang pagsubok para isama ang `programConfig` account.
+Ang pangalawang test ay nagpapatunay na ang instruction sa pagbabayad ay gumagana nang tama, na ang bayad ay ipinadala sa patutunguhan ng bayad at ang natitirang balanse ay inililipat sa tatanggap. Dito, ina-update namin ang umiiral nang test para isama ang `programConfig` account.
 
 ```typescript
 it("Payment completes successfully", async () => {
@@ -766,7 +766,7 @@ it("Payment completes successfully", async () => {
 })
 ```
 
-Ang ikatlong pagsubok ay sumusubok na i-update ang bayad sa program config account, na dapat ay matagumpay.
+Ang ikatlong test ay mag-attempts na i-update ang bayad sa program config account, na kung saan ito dapat ay matagumpay.
 
 ```typescript
 it("Update Program Config Account", async () => {
@@ -789,7 +789,7 @@ it("Update Program Config Account", async () => {
 })
 ```
 
-Ang ika-apat na pagsubok ay sumusubok na i-update ang bayad sa program config account, kung saan ang admin ay hindi ang naka-imbak sa program config account, at ito ay dapat mabigo.
+Ang ika-apat na test ay sumusubok na i-update ang bayad sa program config account, kung saan ang admin ay hindi ang naka-imbak sa program config account, at ito ay dapat mabigo.
 
 ```typescript
 it("Update Program Config Account with unauthorized admin (expect fail)", async () => {
@@ -837,7 +837,7 @@ Ngayon ay oras na para gawin mo ang ilan sa mga ito nang mag-isa. Binanggit nami
 
 Tandaan na ang command na `anchor test`, kapag pinapatakbo sa isang lokal na network, ay magsisimula ng bagong test validator gamit ang `solana-test-validator`. Gumagamit ang test validator na ito ng non-upgradeable loader. Ginagawa ito ng hindi na-upgrade na loader upang hindi masimulan ang `program_data` account ng program kapag nagsimula ang validator. Maaalala mo mula sa aralin na ang account na ito ay kung paano namin naa-access ang awtoridad sa pag-upgrade mula sa programa.
 
-Upang malutas ito, maaari kang magdagdag ng function na `deploy` sa test file na nagpapatakbo ng command sa pag-deploy para sa program na may naa-upgrade na loader. Upang magamit ito, patakbuhin ang `anchor test --skip-deploy`, at tawagan ang function na `deploy` sa loob ng pagsubok upang patakbuhin ang deploy command pagkatapos magsimula ang test validator.
+Upang malutas ito, maaari kang magdagdag ng function na `deploy` sa test file na nagpapatakbo ng command sa pag-deploy para sa program na may naa-upgrade na loader. Upang magamit ito, patakbuhin ang `anchor test --skip-deploy`, at tawagan ang function na `deploy` sa loob ng test upang patakbuhin ang deploy command pagkatapos magsimula ang test validator.
 
 ```typescript
 import { execSync } from "child_process"
@@ -857,10 +857,10 @@ before(async () => {
 })
 ```
 
-Halimbawa, ang utos na patakbuhin ang pagsubok na may mga tampok ay magiging ganito:
+Halimbawa, ang command na patakbuhin ang test na may mga features ay magiging ganito:
 
 ```
 anchor test --skip-deploy -- --features "local-testing"
 ```
 
-Subukang gawin ito nang mag-isa, ngunit kung natigil ka, huwag mag-atubiling sumangguni sa `challenge` na sangay ng [parehong repositoryo](https://github.com/Unboxed-Software/solana-admin-instructions/tree/challenge ) upang makita ang isang posibleng solusyon.
+Subukang gawin ito nang mag-isa, ngunit kung nahihirapan ka, huwag mag-atubiling sumangguni sa `challenge` na branch ng [parehong repositoryo](https://github.com/Unboxed-Software/solana-admin-instructions/tree/challenge ) upang makita ang isang posibleng solusyon.
