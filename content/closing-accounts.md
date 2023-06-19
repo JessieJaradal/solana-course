@@ -8,7 +8,7 @@ objectives:
 
 # TL;DR
 
-- **Ang pagsasara ng account** ay hindi wastong lumilikha ng pagkakataon para sa muling pagsisimula/muling pag-atake
+- **Closing an account** ay ang hindi wastong pag-gawa ng pagkakataon para sa reinitialization/revival attacks
 - Ang Solana runtime **garbage collects accounts** kapag ang mga ito ay hindi na rent exempt. Ang pagsasara ng mga account ay nagsasangkot ng paglilipat ng mga lamport na nakaimbak sa account para sa pagbubukod sa renta sa isa pang account na iyong pinili.
 - Magagamit mo ang Anchor `#[account(close = <address_to_send_lamports>)]` constraint para secure na isara ang mga account at itakda ang account discriminator sa `CLOSED_ACCOUNT_DISCRIMINATOR`
     ```rust
@@ -18,17 +18,17 @@ objectives:
     pub receiver: SystemAccount<'info>
     ```
 
-# Pangkalahatang-ideya
+# Overview
 
 Bagama't ito ay simple, ang pagsasara ng mga account nang maayos ay maaaring nakakalito. Mayroong ilang mga paraan na maaaring iwasan ng isang umaatake ang pagsasara ng account kung hindi mo susundin ang mga partikular na hakbang.
 
 Upang makakuha ng mas mahusay na pag-unawa sa mga vector ng pag-atake na ito, tuklasin natin nang malalim ang bawat isa sa mga sitwasyong ito.
 
-## Hindi secure na pagsasara ng account
+## Insecure na pagsasara ng account
 
 Sa kaibuturan nito, ang pagsasara ng isang account ay nagsasangkot ng paglilipat ng mga lampor nito sa isang hiwalay na account, kaya nati-trigger ang runtime ng Solana upang kolektahin ng basura ang unang account. Nire-reset nito ang may-ari mula sa nagmamay-ari na program patungo sa program ng system.
 
-Tingnan ang halimbawa sa ibaba. Ang pagtuturo ay nangangailangan ng dalawang account:
+Tingnan ang halimbawa sa ibaba. Ang instruction ay nangangailangan ng dalawang account:
 
 1. `account_to_close` - ang account na isasara
 2. `destination` - ang account na dapat makatanggap ng mga lamport ng saradong account
@@ -68,7 +68,7 @@ pub struct Data {
 }
 ```
 
-Gayunpaman, hindi nangyayari ang pangongolekta ng basura hanggang sa makumpleto ang transaksyon. At dahil maaaring magkaroon ng maramihang mga tagubilin sa isang transaksyon, lumilikha ito ng pagkakataon para sa isang umaatake na ipatupad ang tagubilin upang isara ang account ngunit isama rin sa transaksyon ang isang paglilipat upang i-refund ang mga pagbubukod sa renta ng account. Ang resulta ay ang account *ay hindi* magiging basurang kinokolekta, na nagbubukas ng landas para sa umaatake na magdulot ng hindi sinasadyang pag-uugali sa programa at maubos pa ang isang protocol.
+Gayunpaman, hindi nangyayari ang pangongolekta ng basura hanggang sa makumpleto ang transaksyon. At dahil maaaring magkaroon ng maramihang mga instructions sa isang transaksyon, lumilikha ito ng pagkakataon para sa isang umaatake na ipatupad ang instruction upang isara ang account ngunit isama rin sa transaksyon ang isang paglilipat upang i-refund ang mga pagbubukod sa renta ng account. Ang resulta ay ang account *ay hindi* magiging basurang kinokolekta, na nagbubukas ng landas para sa umaatake na magdulot ng hindi sinasadyang pag-uugali sa programa at maubos pa ang isang protocol.
 
 ## Secure na pagsasara ng account
 
@@ -78,7 +78,7 @@ Ang isang account na may zeroed out na data ay maaari pa ring gamitin para sa il
 
 Upang higit pang ma-secure ang program, gayunpaman, ang mga saradong account ay dapat bigyan ng isang account discriminator na nagtatalaga dito bilang "sarado," at lahat ng mga tagubilin ay dapat magsagawa ng mga pagsusuri sa lahat ng mga naipasa na account na nagbabalik ng error kung ang account ay minarkahan na sarado.
 
-Tingnan ang halimbawa sa ibaba. Inililipat ng program na ito ang mga lamport mula sa isang account, tinatanggal ang data ng account, at nagtatakda ng discriminator ng account sa iisang tagubilin sa pag-asang mapigilan ang isang kasunod na tagubilin na gamitin muli ang account na ito bago ito makolekta ng basura. Ang pagkabigong gawin ang alinman sa mga bagay na ito ay magreresulta sa isang kahinaan sa seguridad.
+Tingnan ang halimbawa sa ibaba. Inililipat ng program na ito ang mga lamport mula sa isang account, tinatanggal ang data ng account, at nagtatakda ng discriminator ng account sa iisang instruction sa pag-asang mapigilan ang kasunod na instruction na gamitin muli ang account na ito bago ito makolekta ng basura. Ang pagkabigong gawin ang alinman sa mga bagay na ito ay magreresulta sa isang kahinaan sa seguridad.
 
 ```rust
 use anchor_lang::prelude::*;
@@ -128,13 +128,13 @@ pub struct Data {
 }
 ```
 
-Tandaan na ang halimbawa sa itaas ay gumagamit ng `CLOSED_ACCOUNT_DISCRIMINATOR` ng Anchor. Isa lang itong account discriminator kung saan ang bawat byte ay `255`. Ang discriminator ay walang anumang likas na kahulugan, ngunit kung isasama mo ito sa mga pagsusuri sa pagpapatunay ng account na nagbabalik ng mga error sa anumang oras na ang isang account na may ganitong discriminator ay naipasa sa isang pagtuturo, pipigilan mo ang iyong programa sa hindi sinasadyang pagproseso ng isang pagtuturo na may saradong account .
+Tandaan na ang halimbawa sa itaas ay gumagamit ng `CLOSED_ACCOUNT_DISCRIMINATOR` ng Anchor. Isa lang itong account discriminator kung saan ang bawat byte ay `255`. Ang discriminator ay walang anumang likas na kahulugan, ngunit kung isasama mo ito sa mga account validation checks na nag-return ng mga error sa anumang oras na ang isang account na may ganitong discriminator ay naipasa sa isang pagtuturo, pipigilan mo ang iyong programa sa hindi sinasadyang pagproseso ng isang instruction na may saradong account .
 
 ### Manual Force Defund
 
-Mayroon pa ring isang maliit na isyu. Habang ang kasanayan ng pag-zero out sa data ng account at pagdaragdag ng isang "sarado" na discriminator ng account ay pipigilan ang iyong programa mula sa pagsasamantala, ang isang user ay maaari pa ring pigilan ang isang account mula sa pagiging basura na nakolekta sa pamamagitan ng pag-refund ng mga lamports ng account bago matapos ang isang pagtuturo. Nagreresulta ito sa isa o posibleng maraming account na umiiral sa isang limbo state kung saan hindi magagamit ang mga ito ngunit hindi rin maaaring kolektahin ng basura.
+Mayroon pa ring isang maliit na isyu. Habang ang kasanayan ng pag-zero out sa data ng account at pagdaragdag ng isang "sarado" na discriminator ng account ay pipigilan ang iyong programa mula sa pagsasamantala, ang isang user ay maaari pa ring pigilan ang isang account mula sa pagiging basura na nakolekta sa pamamagitan ng pag-refund ng mga lamports ng account bago matapos ang isang instruction. Nagreresulta ito sa isa o posibleng maraming account na umiiral sa isang limbo state kung saan hindi magagamit ang mga ito ngunit hindi rin maaaring kolektahin ng basura.
 
-Para pangasiwaan ang edge case na ito, maaari mong isaalang-alang ang pagdaragdag ng tagubilin na magbibigay-daan sa *sinuman* na i-defund ang mga account na may tag na "closed" account discriminator. Ang tanging pagpapatunay ng account na gagawin ng tagubiling ito ay upang matiyak na ang account na nade-defund ay mamarkahan bilang sarado. Maaaring ganito ang hitsura nito:
+Para pangasiwaan ang edge case na ito, maaari mong isaalang-alang ang pagdaragdag ng instruction na magbibigay-daan sa *sinuman* na i-defund ang mga account na may tag na "closed" account discriminator. Ang tanging pagpapatunay ng account na gagawin ng instruction ito ay upang matiyak na ang account na nade-defund ay mamarkahan bilang sarado. Maaaring ganito ang hitsura nito:
 
 ```rust
 use anchor_lang::__private::CLOSED_ACCOUNT_DISCRIMINATOR;
@@ -175,19 +175,19 @@ pub struct ForceDefund<'info> {
 }
 ```
 
-Dahil maaaring tawagan ng sinuman ang tagubiling ito, maaari itong kumilos bilang isang hadlang sa mga pagtatangkang muling pag-atake dahil ang umaatake ay nagbabayad para sa pagbubukod sa upa ng account ngunit sinumang iba ay maaaring mag-claim ng mga lamport sa isang na-refund na account para sa kanilang sarili.
+Dahil maaaring tawagan ng sinuman ang instruction ito, maaari itong kumilos bilang isang deterrent sa mga pagtatangkang muling pag-atake dahil ang umaatake ay nagbabayad para sa pagbubukod sa upa ng account ngunit sinumang iba ay maaaring mag-claim ng mga lamport sa isang na-refund na account para sa kanilang sarili.
 
-Bagama't hindi kinakailangan, makakatulong ito na maalis ang pag-aaksaya ng espasyo at mga lampara na nauugnay sa mga "limbo" na account na ito.
+Bagama't hindi kinakailangan, makakatulong ito na maalis ang pag-aaksaya ng space at mga lampara na nauugnay sa mga "limbo" na account na ito.
 
 ## Gamitin ang Anchor `close` constraint
 
-Sa kabutihang palad, ginagawang mas simple ng Anchor ang lahat ng ito gamit ang hadlang na `#[account(close = <target_account>)]. Pinangangasiwaan ng paghihigpit na ito ang lahat ng kinakailangan upang ligtas na isara ang isang account:
+Sa kabutihang palad, ginagawang mas simple ng Anchor ang lahat ng ito gamit ang constraint na `#[account(close = <target_account>)]. Pinangangasiwaan ng constraint na ito ang lahat ng kinakailangan upang ligtas na isara ang isang account:
 
 1. Inilipat ang mga lamport ng account sa ibinigay na `<target_account>`
 2. Ni-zero out ang data ng account
 3. Itinatakda ang discriminator ng account sa variant na `CLOSED_ACCOUNT_DISCRIMINATOR`
 
-Ang kailangan mo lang gawin ay idagdag ito sa struct ng pagpapatunay ng account sa account na gusto mong isara:
+Ang kailangan mo lang gawin ay idagdag ito sa struct ng account validation  sa account na gusto mong isara:
 
 ```rust
 #[derive(Accounts)]
@@ -208,36 +208,36 @@ Ang tagubiling `force_defund` ay isang opsyonal na karagdagan na kakailanganin m
 
 # Demo
 
-Upang linawin kung paano maaaring samantalahin ng isang umaatake ang isang muling pag-atake, magtrabaho tayo sa isang simpleng programa ng lottery na gumagamit ng estado ng account ng programa upang pamahalaan ang paglahok ng isang user sa lottery.
+Upang linawin kung paano maaaring samantalahin ng umaatake ang revival attack, magtrabaho tayo sa isang simpleng programa ng lottery na gumagamit ng estado ng account ng programa upang pamahalaan ang paglahok ng isang user sa lottery.
 
 ## 1. Pag-setup
 
 Magsimula sa pamamagitan ng pagkuha ng code sa `starter` branch mula sa [sumusunod na repo](https://github.com/Unboxed-Software/solana-closing-accounts/tree/starter).
 
-Ang code ay may dalawang tagubilin sa programa at dalawang pagsubok sa direktoryo ng `mga pagsubok`.
+Ang code ay may dalawang instructions sa programa at dalawang pagsubok sa directory ng `tests`.
 
-Ang mga tagubilin sa programa ay:
+Ang mga instructions sa programa ay:
 
 1. `enter_lottery`
 2. `redeem_rewards_insecure`
 
 Kapag ang isang user ay tumawag ng `enter_lottery`, ang program ay magpapasimula ng isang account upang mag-imbak ng ilang estado tungkol sa entry ng lottery ng user.
 
-Dahil ito ay isang pinasimpleng halimbawa sa halip na isang ganap na programa ng lottery, kapag ang isang user ay nakapasok na sa lottery, maaari nilang tawagan ang pagtuturo na `redeem_rewards_insecure` anumang oras. Ang tagubiling ito ay magbibigay sa user ng halaga ng Reward token na proporsyonal sa dami ng beses na nakapasok ang user sa lottery. Matapos i-minting ang mga reward, isinasara ng programa ang entry sa lottery ng user.
+Dahil ito ay isang pinasimpleng halimbawa sa halip na isang ganap na programa ng lottery, kapag ang isang user ay nakapasok na sa lottery, maaari nilang tawagan ang instruction na `redeem_rewards_insecure` anumang oras. Ang instruction ito ay magbibigay sa user ng halaga ng Reward token na proporsyonal sa dami ng beses na nakapasok ang user sa lottery. Matapos i-minting ang mga reward, isinasara ng programa ang entry sa lottery ng user.
 
-Maglaan ng isang minuto upang maging pamilyar sa code ng programa. Ang tagubiling `enter_lottery` ay lumilikha lamang ng isang account sa isang PDA na nakamapa sa user at nagpapasimula ng ilang estado dito.
+Maglaan ng isang minuto upang maging pamilyar sa code ng programa. Ang instruction `enter_lottery` ay lumilikha lamang ng isang account sa isang PDA na nakamapa sa user at nagpapasimula ng ilang estado dito.
 
-Ang tagubiling `redeem_rewards_insecure` ay nagsasagawa ng ilang pagpapatunay ng account at data, nagbibigay ng mga token sa ibinigay na token account, pagkatapos ay isinasara ang lottery account sa pamamagitan ng pag-alis ng mga lamport nito.
+Ang instruction `redeem_rewards_insecure` ay nagsasagawa ng ilang pagpapatunay ng account at data, nagbibigay ng mga token sa ibinigay na token account, pagkatapos ay isinasara ang lottery account sa pamamagitan ng pag-alis ng mga lamport nito.
 
-Gayunpaman, pansinin ang tagubiling `redeem_rewards_insecure` *lamang* ay naglilipat ng mga lamport ng account, na iniiwan ang account na bukas sa mga muling pag-atake.
+Gayunpaman, pansinin ang instruction `redeem_rewards_insecure` ay naglilipat *lamang* ng mga lamport ng account, na iniiwan ang account na bukas sa mga revival attacks.
 
-## 2. Test Insecure Program
+## 2. I-test ang Insecure Program
 
 Ang isang attacker na matagumpay na pumipigil sa kanilang account mula sa pagsasara ay maaaring tumawag ng `redeem_rewards_insecure` nang maraming beses, na nagke-claim ng mas maraming reward kaysa sa dapat nilang bayaran.
 
-Naisulat na ang ilang panimulang pagsusulit na nagpapakita ng kahinaang ito. Tingnan ang `closing-accounts.ts` file sa direktoryo ng `tests`. Mayroong ilang setup sa function na `before`, pagkatapos ay isang pagsubok na lumilikha lamang ng bagong entry sa lottery para sa `attacker`.
+Naisulat na ang ilang panimulang pagsusulit na nagpapakita ng kahinaang ito. Tingnan ang `closing-accounts.ts` file sa directory ng `tests`. Mayroong ilang setup sa function na `before`, pagkatapos ay isang test na lumilikha lamang ng bagong entry sa lottery para sa `attacker`.
 
-Panghuli, mayroong pagsubok na nagpapakita kung paano mapapanatili ng isang attacker na buhay ang account kahit na pagkatapos mag-claim ng mga reward at pagkatapos ay mag-claim muli ng mga reward. Ang pagsusulit na iyon ay ganito ang hitsura:
+Panghuli, mayroong test na nagpapakita kung paano mapapanatili ng isang attacker na buhay ang account kahit na pagkatapos mag-claim ng mga reward at pagkatapos ay mag-claim muli ng mga reward. Ang pagsusulit na iyon ay ganito ang hitsura:
 
 ```typescript
 it("attacker  can close + refund lottery acct + claim multiple rewards", async () => {
@@ -288,16 +288,16 @@ it("attacker  can close + refund lottery acct + claim multiple rewards", async (
 })
 ```
 
-Ginagawa ng pagsusulit na ito ang sumusunod:
+Ginagawa ng test na ito ang sumusunod:
 1. Tumawag ng `redeem_rewards_insecure` para i-redeem ang mga reward ng user
 2. Sa parehong transaksyon, nagdaragdag ng tagubilin upang i-refund ang `lottery_entry` ng user bago ito aktwal na maisara
 3. Matagumpay na nauulit ang hakbang 1 at 2, na nagre-redeem ng mga reward sa pangalawang pagkakataon.
 
 Maaari mong teoretikal na ulitin ang mga hakbang 1-2 nang walang hanggan hanggang sa alinman sa a) ang programa ay wala nang mga gantimpala na ibibigay o b) may nakapansin at nag-patch ng pagsasamantala. Ito ay malinaw na magiging isang matinding problema sa anumang tunay na programa dahil pinapayagan nito ang isang malisyosong umaatake na maubos ang isang buong reward pool.
 
-## 3. Gumawa ng `redeem_rewards_secure` na pagtuturo
+## 3. Gumawa ng `redeem_rewards_secure` na instruction
 
-Upang maiwasang mangyari ito, gagawa kami ng bagong tagubilin na magsasara ng lottery account nang lihim gamit ang Anchor `close` constraint. Huwag mag-atubiling subukan ito sa iyong sarili kung gusto mo.
+Upang maiwasang mangyari ito, gagawa kami ng bagong instruction na magsasara ng lottery account nang lihim gamit ang Anchor `close` constraint. Huwag mag-atubiling subukan ito sa iyong sarili kung gusto mo.
 
 Ang bagong account validation struct na tinatawag na `RedeemWinningsSecure` ay dapat magmukhang ganito:
 
@@ -354,7 +354,7 @@ impl<'info> RedeemWinningsSecure <'info> {
 }
 ```
 
-Sa wakas, ang lohika para sa bagong secure na pagtuturo ay dapat magmukhang ganito:
+Sa wakas, ang lohika para sa bagong secure na instruction ay dapat magmukhang ganito:
 
 ```rust
 pub fn redeem_winnings_secure(ctx: Context<RedeemWinningsSecure>) -> Result<()> {
@@ -375,11 +375,11 @@ pub fn redeem_winnings_secure(ctx: Context<RedeemWinningsSecure>) -> Result<()> 
 }
 ```
 
-Kinakalkula lang ng logic na ito ang mga reward para sa nagke-claim na user at inililipat ang mga reward. Gayunpaman, dahil sa hadlang na `close` sa struct ng pagpapatunay ng account, hindi dapat matawagan ng attacker ang tagubiling ito nang maraming beses.
+Kinakalkula lang ng logic na ito ang mga reward para sa nagke-claim na user at inililipat ang mga reward. Gayunpaman, dahil sa constraint na `close` sa struct ng account validation, hindi dapat matawagan ng attacker ang instruction ito nang maraming beses.
 
-## 4. Subukan ang Programa
+## 4. I-test ang Programa
 
-Upang subukan ang aming bagong secure na pagtuturo, gumawa tayo ng bagong pagsubok na sumusubok na tumawag sa `redeemWinningsSecure` nang dalawang beses. Inaasahan naming magkakaroon ng error ang pangalawang tawag.
+Upang subukan ang aming bagong secure na instruction, gumawa tayo ng bagong test na sumusubok na tumawag sa `redeemWinningsSecure` nang dalawang beses. Inaasahan naming magkakaroon ng error ang pangalawang tawag.
 
 ```typescript
 it("attacker cannot claim multiple rewards with secure claim", async () => {
@@ -435,7 +435,7 @@ it("attacker cannot claim multiple rewards with secure claim", async () => {
 })
 ```
 
-Patakbuhin ang `anchor test` para makitang pumasa ang pagsubok. Ang output ay magmumukhang ganito:
+Patakbuhin ang `anchor test` para makitang pumasa ang test. Ang output ay magmumukhang ganito:
 
 ```bash
   closing-accounts
@@ -445,9 +445,9 @@ AnchorError caused by account: lottery_entry. Error Code: AccountDiscriminatorMi
     ✔ attacker cannot claim multiple rewards with secure claim (414ms)
 ```
 
-Tandaan, hindi nito pinipigilan ang malisyosong user na i-refund nang buo ang kanilang account - pinoprotektahan lang nito ang aming programa mula sa hindi sinasadyang muling paggamit ng account kapag dapat itong isara. Hindi pa kami nagpapatupad ng `force_defund` na pagtuturo sa ngayon, ngunit magagawa namin. Kung nararamdaman mo ito, subukan mo ito sa iyong sarili!
+Tandaan, hindi nito pinipigilan ang malicious user na i-refund nang buo ang kanilang account - pinoprotektahan lang nito ang aming programa mula sa hindi sinasadyang muling paggamit ng account kapag dapat itong isara. Hindi pa kami nagpapatupad ng `force_defund` na instruction sa ngayon, ngunit magagawa namin. Kung nararamdaman mo ito, subukan mo ito sa iyong sarili!
 
-Ang pinakasimple at pinakasecure na paraan upang isara ang mga account ay ang paggamit ng `close` constraint ng Anchor. Kung kailangan mo ng higit pang custom na gawi at hindi mo magagamit ang hadlang na ito, tiyaking gayahin ang functionality nito upang matiyak na secure ang iyong program.
+Ang pinakasimple at pinakasecure na paraan upang isara ang mga account ay ang paggamit ng `close` constraint ng Anchor. Kung kailangan mo ng higit pang custom na gawi at hindi mo magagamit ang constraint na ito, tiyaking gayahin ang functionality nito upang matiyak na secure ang iyong program.
 
 Kung gusto mong tingnan ang panghuling code ng solusyon, mahahanap mo ito sa `solution` branch ng [parehong repositoryo](https://github.com/Unboxed-Software/solana-closing-accounts/tree/solution).
 
