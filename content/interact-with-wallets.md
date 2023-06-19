@@ -9,31 +9,31 @@ objectives:
 
 # TL;DR
 
-- **Ang mga Wallet** ay nag-iimbak ng iyong sikretong susi at pinangangasiwaan ang secure na pag-sign ng transaksyon
-- **Ang mga wallet ng hardware** ay nag-iimbak ng iyong sikretong key sa isang hiwalay na device
+- **Wallets** ay nag-iimbak ng iyong secret key at nag-hahandle ng secure na pag-sign ng transaksyon
+- **Hardware wallets** ay nag-iimbak ng iyong secret keysa isang hiwalay na device
 - **Software wallet** gamitin ang iyong computer para sa secure na storage
-- Ang mga software wallet ay kadalasang **mga extension ng browser** na nagpapadali sa pagkonekta sa mga website
+- Ang mga software wallet ay kadalasang **browser extensions** na nagpapadali sa pagkonekta sa mga website
 - Pinapasimple ng **Wallet-Adapter library** ni Solana ang suporta ng mga extension ng browser ng wallet, na nagbibigay-daan sa iyong bumuo ng mga website na maaaring humiling ng address ng wallet ng user at magmungkahi ng mga transaksyon para lagdaan nila
 
-# Pangkalahatang-ideya
+# Overview
 
-## Mga pitaka
+## Wallets
 
-Sa nakaraang dalawang aralin ay tinalakay natin ang mga keypair. Ginagamit ang mga keypair upang mahanap ang mga account at pumirma ng mga transaksyon. Habang ang pampublikong susi ng isang keypair ay ganap na ligtas na ibahagi, ang sikretong susi ay dapat palaging itago sa isang secure na lokasyon. Kung malantad ang sikretong susi ng isang user, maaaring maubos ng isang malisyosong aktor ang kanilang account sa lahat ng asset at magsagawa ng mga transaksyon nang may awtoridad ng user na iyon.
+Sa nakaraang dalawang aralin ay tinalakay natin ang mga keypair. Ginagamit ang mga keypair upang mahanap ang mga account at sign ng mga transaksyon. Habang ang public key ng isang keypair ay ganap na ligtas na ibahagi, ang secret key ay dapat palaging itago sa isang secure na lokasyon. Kung malantad ang sikretong susi ng isang user, maaaring maubos ng isang malicious actor ang kanilang account sa lahat ng asset at magsagawa ng mga transaksyon nang may awtoridad ng user na iyon.
 
-Ang "wallet" ay tumutukoy sa anumang bagay na nag-iimbak ng isang lihim na susi upang mapanatili itong secure. Ang mga secure na opsyon sa storage na ito ay karaniwang maaaring ilarawan bilang alinman sa "hardware" o "software" na mga wallet. Ang mga wallet ng hardware ay mga storage device na hiwalay sa iyong computer. Ang mga wallet ng software ay application na maaari mong i-install sa iyong (mga) kasalukuyang device.
+Ang "wallet" ay tumutukoy sa anumang bagay na nag-iimbak ng isang secret key upang mapanatili itong secure. Ang mga secure na opsyon sa storage na ito ay karaniwang maaaring ilarawan bilang alinman sa "hardware" o "software" na mga wallet. Ang mga wallet ng hardware ay mga storage device na hiwalay sa iyong computer. Ang mga wallet ng software ay application na maaari mong i-install sa iyong (mga) kasalukuyang device.
 
 Ang mga wallet ng software ay kadalasang nanggagaling sa anyo ng isang extension ng browser. Ginagawa nitong posible para sa mga website na madaling makipag-ugnayan sa wallet. Ang ganitong mga pakikipag-ugnayan ay karaniwang limitado sa:
 
-1. Pagtingin sa pampublikong susi (address) ng pitaka
+1. Pagtingin sa public key (address) ng pitaka
 2. Pagsusumite ng mga transaksyon para sa pag-apruba ng isang user
 3. Pagpapadala ng naaprubahang transaksyon sa network
 
-Kapag naisumite na ang isang transaksyon, maaaring "kumpirmahin" ng end user ang transaksyon at ipadala ito sa network kasama ang kanilang "pirma."
+Kapag naisumite na ang isang transaksyon, maaaring "confirm" ng end user ang transaksyon at ipadala ito sa network kasama ang kanilang "signature."
 
-Ang pag-sign sa mga transaksyon ay nangangailangan ng paggamit ng iyong sikretong key. Sa pamamagitan ng pagpayag sa isang site na magsumite ng transaksyon sa iyong wallet at pagkakaroon ng wallet na pangasiwaan ang pagpirma, tinitiyak mong hindi mo kailanman ilantad ang iyong sikretong susi sa website. Sa halip, ibinabahagi mo lamang ang sikretong susi sa application ng wallet.
+Ang pag-sign sa mga transaksyon ay nangangailangan ng paggamit ng iyong secret key. Sa pamamagitan ng pagpayag sa isang site na magsumite ng transaksyon sa iyong wallet at pagkakaroon ng wallet na i-handle ang signing, tinitiyak mong hindi mo kailanman ilantad ang iyong secret key sa website. Sa halip, ibinabahagi mo lamang ang secret key sa application ng wallet.
 
-Maliban na lang kung ikaw mismo ang gumagawa ng wallet application, hindi dapat kailanganin ng iyong code na hilingin sa isang user ang kanilang sikretong key. Sa halip, maaari mong hilingin sa mga user na kumonekta sa iyong site gamit ang isang kagalang-galang na wallet.
+Maliban na lang kung ikaw mismo ang gumagawa ng wallet application, hindi dapat kailanganin ng iyong code na hilingin sa isang user ang kanilang secret key. Sa halip, maaari mong hilingin sa mga user na kumonekta sa iyong site gamit ang isang kagalang-galang na wallet.
 
 ## Phantom Wallet
 
@@ -47,9 +47,9 @@ Ang Solana's Wallet-Adapter ay binubuo ng maraming modular na pakete. Ang pangun
 
 Mayroon ding mga package na nagbibigay ng mga bahagi para sa mga karaniwang UI framework. Sa araling ito at sa buong kursong ito, gagamit kami ng mga bahagi mula sa `@solana/wallet-adapter-react-ui`.
 
-Sa wakas, may mga pakete na mga adaptor para sa mga partikular na wallet, kabilang ang Phantom. Maaari mong gamitin ang `@solana/wallet-adapter-wallet` para isama ang lahat ng sinusuportahang wallet, o maaari kang pumili ng partikular na wallet package tulad ng `@solana/wallet-adapter-phantom`.
+Sa wakas, may mga packages na mga adaptor para sa mga specific na wallet, kabilang ang Phantom. Maaari mong gamitin ang `@solana/wallet-adapter-wallet` para isama ang lahat ng sinusuportahang wallet, o maaari kang pumili ng specific na wallet package tulad ng `@solana/wallet-adapter-phantom`.
 
-### Mag-install ng Mga Aklatan ng Wallet-Adapter
+### Mag-install ng Wallet-Adapter Libraries
 
 Kapag nagdaragdag ng suporta sa wallet sa isang umiiral nang react app, magsisimula ka sa pamamagitan ng pag-install ng mga naaangkop na package. Kakailanganin mo ang `@solana/wallet-adapter-base`, `@solana/wallet-adapter-react`, ang (mga) package para sa (mga) wallet na gusto mong suportahan, at `@solana/wallet-adapter -react-ui` kung plano mong gamitin ang ibinigay na mga bahagi ng reaksyon, hal.
 
@@ -60,7 +60,7 @@ npm install @solana/wallet-adapter-base \
     @solana/wallet-adapter-react-ui
 ```
 
-### Kumonekta sa Wallets
+### Connect To Wallets
 
 Binibigyang-daan kami ng `@solana/wallet-adapter-react` na magpatuloy at ma-access ang mga estado ng koneksyon ng wallet sa pamamagitan ng mga hook at provider ng konteksto, katulad ng:
 
@@ -94,7 +94,7 @@ export const Home: NextPage = (props) => {
 
 Tandaan na ang `ConnectionProvider` ay nangangailangan ng `endpoint` na property at ang `WalletProvider` ay nangangailangan ng isang `wallet` na property. Patuloy naming ginagamit ang endpoint para sa Devnet cluster, at sa ngayon ginagamit lang namin ang `PhantomWalletAdapter` para sa `mga wallet`.
 
-Sa puntong ito maaari kang kumonekta sa `wallet.connect()`, na epektibong magtuturo sa wallet na i-prompt ang user para sa pahintulot na tingnan ang kanilang pampublikong key at humiling ng pag-apruba para sa mga transaksyon.
+Sa puntong ito maaari kang kumonekta sa `wallet.connect()`, na epektibong instruct sa wallet na i-prompt ang user para sa permission na tingnan ang kanilang public key at mag-request ng approval para sa mga transaksyon.
 
 ![Screenshot of wallet connection prompt](../assets/wallet-connect-prompt.png)
 
@@ -141,7 +141,7 @@ Ang `WalletModalProvider` ay nagdaragdag ng functionality para sa pagpapakita ng
 
 ![Screenshot of multi button connected state](../assets/multi-button-connected.png)
 
-Maaari ka ring gumamit ng mas maraming butil na bahagi kung kailangan mo ng mas partikular na pagpapagana:
+Maaari ka ring gumamit ng mas maraming granular components kung kailangan mo ng mas specific na functionality:
 
 - `WalletConnectButton`
 - `WalletModal`
@@ -151,7 +151,7 @@ Maaari ka ring gumamit ng mas maraming butil na bahagi kung kailangan mo ng mas 
 
 ### I-access ang Impormasyon ng Account
 
-Kapag nakakonekta na ang iyong site sa isang wallet, kukuha ang `useConnection` ng object na `Connection` at makukuha ng `useWallet` ang `WalletContextState`. Ang `WalletContextState` ay may property na `publicKey` na `null` kapag hindi nakakonekta sa isang wallet at mayroong pampublikong key ng account ng user kapag nakakonekta ang isang wallet. Gamit ang isang pampublikong key at isang koneksyon, maaari kang kumuha ng impormasyon ng account at higit pa.
+Kapag nakakonekta na ang iyong site sa isang wallet, kukuha ang `useConnection` ng object na `Connection` at makukuha ng `useWallet` ang `WalletContextState`. Ang `WalletContextState` ay may property na `publicKey` na `null` kapag hindi nakakonekta sa isang wallet at mayroong public key ng account ng user kapag nakakonekta ang isang wallet. Gamit ang isang public key at isang koneksyon, maaari kang kumuha ng impormasyon ng account at higit pa.
 
 ```tsx
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
@@ -181,7 +181,7 @@ export const BalanceDisplay: FC = () => {
 
 ### Magpadala ng mga Transaksyon
 
-Nagbibigay din ang `WalletContextState` ng function na `sendTransaction` na magagamit mo upang magsumite ng mga transaksyon para sa pag-apruba.
+Nagbibigay din ang `WalletContextState` ng function na `sendTransaction` na magagamit mo upang magsumite ng mga transaksyon para sa approval.
 
 ```tsx
 const { publicKey, sendTransaction } = useWallet()
@@ -212,15 +212,15 @@ Kapag tinawag ang function na ito, ipapakita ng konektadong wallet ang transaksy
 
 # Demo
 
-Kunin natin ang Ping program mula sa huling aralin at bumuo ng frontend na nagbibigay-daan sa mga user na aprubahan ang isang transaksyon na nag-ping sa program. Bilang paalala, ang pampublikong key ng programa ay `ChT1B39WKLS8qUrkLvFDXMhEJ4F1XZzwUNHUt4AU9aVa` at ang pampublikong key para sa data account ay `Ah9K7dQ8EHaZqcAsgBW8w37yN2eAy3koFmUn`4.
+Kunin natin ang Ping program mula sa huling aralin at bumuo ng frontend na nagbibigay-daan sa mga user na aprubahan ang isang transaksyon na nag-ping sa program. Bilang paalala, ang public key ng programa ay `ChT1B39WKLS8qUrkLvFDXMhEJ4F1XZzwUNHUt4AU9aVa` at ang public key para sa data account ay `Ah9K7dQ8EHaZqcAsgBW8w37yN2eAy3koFmUn`4.
 
 ![Screenshot of Solana Ping App](../assets/solana-ping-app.png)
 
 ### 1. I-download ang extension ng Phantom browser at itakda ito sa Devnet
 
-Kung wala ka pa nito, i-download ang [Phantom browser extension](https://phantom.app/download). Sa oras ng pagsulat, sinusuportahan nito ang mga browser ng Chrome, Brave, Firefox, at Edge, kaya kakailanganin mo ring i-install ang isa sa mga browser na iyon. Sundin ang mga tagubilin ng Phantom para sa paggawa ng bagong account at bagong wallet.
+Kung wala ka pa nito, i-download ang [Phantom browser extension](https://phantom.app/download). Sa oras ng pagsulat, sinusuportahan nito ang mga browser ng Chrome, Brave, Firefox, at Edge, kaya kakailanganin mo ring i-install ang isa sa mga browser na iyon. Sundin ang mga instructions ng Phantom para sa paggawa ng bagong account at bagong wallet.
 
-Kapag mayroon ka nang wallet, i-click ang gear ng mga setting sa kanang ibaba sa Phantom UI. Mag-scroll pababa at mag-click sa line item na "Baguhin ang Network" at piliin ang "Devnet." Tinitiyak nito na ang Phantom ay makokonekta sa parehong network na gagamitin namin sa demo na ito.
+Kapag mayroon ka nang wallet, i-click ang gear ng mga setting sa kanang ibaba sa Phantom UI. Mag-scroll pababa at mag-click sa line item na "Change Network" at piliin ang "Devnet." Tinitiyak nito na ang Phantom ay makokonekta sa parehong network na gagamitin namin sa demo na ito.
 
 ### 2. I-download ang starter code
 
@@ -369,7 +369,7 @@ Ngayong makakakonekta na ang aming app sa Phantom wallet, gawin natin ang "Ping!
 
 Magsimula sa pamamagitan ng pagbubukas ng `PingButton.tsx` file. Papalitan namin ang `console.log` sa loob ng `onClick` ng code na lilikha ng transaksyon at isusumite ito sa extension ng Phantom para sa pag-apruba ng end user.
 
-Una, kailangan namin ng koneksyon, pampublikong key ng wallet, at function na `sendTransaction` ng Wallet-Adapter. Para makuha ito, kailangan naming mag-import ng `useConnection` at `useWallet` mula sa `@solana/wallet-adapter-react`. Habang narito tayo, mag-import din tayo ng `@solana/web3.js` dahil kakailanganin natin ito para magawa ang ating transaksyon.
+Una, kailangan namin ng koneksyon, public key ng wallet, at function na `sendTransaction` ng Wallet-Adapter. Para makuha ito, kailangan naming mag-import ng `useConnection` at `useWallet` mula sa `@solana/wallet-adapter-react`. Habang narito tayo, mag-import din tayo ng `@solana/web3.js` dahil kakailanganin natin ito para magawa ang ating transaksyon.
 
 ```tsx
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
@@ -455,7 +455,7 @@ const onClick = () => {
 
 At iyon na! Kung nire-refresh mo ang page, ikonekta ang iyong wallet, at i-click ang ping button, dapat ipakita sa iyo ng Phantom ang isang popup para sa pagkumpirma ng transaksyon.
 
-### 6. Magdagdag ng ilang polish sa paligid ng mga gilid
+### 6. Add some polish around the edges
 
 Marami kang magagawa para gawing mas mahusay ang karanasan ng user dito. Halimbawa, maaari mong baguhin ang UI upang ipakita lamang sa iyo ang Ping button kapag nakakonekta ang isang wallet at magpakita ng iba pang prompt kung hindi man. Maaari kang mag-link sa transaksyon sa Solana Explorer pagkatapos makumpirma ng isang user ang isang transaksyon upang madali nilang tingnan ang mga detalye ng transaksyon. Kapag mas nag-eeksperimento ka dito, mas magiging komportable ka, kaya maging malikhain!
 
