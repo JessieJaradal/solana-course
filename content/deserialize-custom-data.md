@@ -14,9 +14,9 @@ objectives:
 - Maaari kang makakuha ng hanay ng lahat ng mga account na kabilang sa isang program gamit ang `getProgramAccounts(programId)`.
 - Kailangang ma-deserialize ang data ng account gamit ang parehong layout na ginamit upang iimbak ito sa unang lugar. Maaari mong gamitin ang `@project-serum/borsh` para gumawa ng schema.
 
-# Pangkalahatang-ideya
+# Overview
 
-Sa huling aralin, nag-serialize kami ng custom na data ng pagtuturo na pagkatapos ay inimbak on-chain ng isang Solana program. Sa araling ito, tatalakayin natin nang mas detalyado kung paano ginagamit ng mga program ang mga account, kung paano kunin ang mga ito, at kung paano i-deserialize ang data na iniimbak nila.
+Sa huling aralin, nag-serialize kami ng custom na data ng instruction na pagkatapos ay inimbak on-chain ng isang Solana program. Sa araling ito, tatalakayin natin nang mas detalyado kung paano ginagamit ng mga program ang mga account, kung paano kunin ang mga ito, at kung paano i-deserialize ang data na iniimbak nila.
 
 ## Mga Programa
 
@@ -26,7 +26,7 @@ Ang mga programa mismo, gayunpaman, ay walang estado. Hindi nila maaaring baguhi
 
 ### PDA
 
-Ang PDA ay nangangahulugang Program Derived Address. Gaya ng ipinahihiwatig ng pangalan, ito ay tumutukoy sa isang address (public key) na nagmula sa isang programa at ilang mga buto. Sa nakaraang aralin, tinalakay natin ang mga pampubliko/pribadong susi at kung paano ginagamit ang mga ito sa Solana. Hindi tulad ng keypair, ang isang PDA *walang* ay may kaukulang pribadong key. Ang layunin ng isang PDA ay lumikha ng isang address na maaaring lagdaan ng isang programa sa parehong paraan na maaaring mag-sign ang isang user para sa isang transaksyon gamit ang kanilang wallet.
+Ang PDA ay nangangahulugang Program Derived Address. Gaya ng ipinahihiwatig ng pangalan, ito ay tumutukoy sa isang address (public key) na nagmula sa isang programa at ilang mga seeds. Sa nakaraang aralin, tinalakay natin ang mga public/private keys at kung paano ginagamit ang mga ito sa Solana. Hindi tulad ng keypair, ang isang PDA *walang* ay may kaukulang private keys. Ang layunin ng isang PDA ay lumikha ng isang address na maaaring sign ng isang programa sa parehong paraan na maaaring mag-sign ang isang user para sa isang transaksyon gamit ang kanilang wallet.
 
 Kapag nagsumite ka ng transaksyon sa isang program at inaasahan na ang program ay mag-a-update ng estado o mag-imbak ng data sa ilang paraan, ang program na iyon ay gumagamit ng isa o higit pang mga PDA. Mahalaga itong maunawaan kapag bumubuo ng panig ng kliyente para sa dalawang dahilan:
 
@@ -37,9 +37,9 @@ Kapag nagsumite ka ng transaksyon sa isang program at inaasahan na ang program a
 
 Ang mga PDA ay hindi teknikal na nilikha. Sa halip, ang mga ito ay *hinahanap* o *hinango* batay sa isa o higit pang mga input seed.
 
-Ang mga regular na keypair ng Solana ay nasa ed2559 Elliptic Curve. Tinitiyak ng cryptographic function na ito na ang bawat punto sa kahabaan ng curve ay may katumbas na punto sa ibang lugar sa curve, na nagbibigay-daan para sa mga pampubliko/pribadong key. Ang mga PDA ay mga address na nasa *off* ang ed2559 Elliptic curve at samakatuwid ay hindi maaaring lagdaan ng isang pribadong key (dahil walang isa). Tinitiyak nito na ang programa ay ang tanging wastong lumagda para sa address na iyon.
+Ang mga regular na keypair ng Solana ay nasa ed2559 Elliptic Curve. Tinitiyak ng cryptographic function na ito na ang bawat punto sa kahabaan ng curve ay may katumbas na punto sa ibang lugar sa curve, na nagbibigay-daan para sa public/private keys. Ang mga PDA ay mga address na nasa *off* ang ed2559 Elliptic curve at samakatuwid ay hindi maaaring lagdaan ng isang private key (dahil walang isa). Tinitiyak nito na ang programa ay ang tanging valid signer para sa address na iyon.
 
-Upang makahanap ng pampublikong key na hindi nasa curve ng ed2559, ang program ID at mga buto na pinili ng developer (tulad ng isang string ng text) ay ipinapasa sa function na [`findProgramAddress(seeds, programid)`](https://solana-labs.github.io/solana-web3.js/classes/PublicKey.html#findProgramAddress). Pinagsasama ng function na ito ang program ID, mga buto, at isang bump seed sa isang buffer at ipinapasa ito sa isang SHA256 hash upang makita kung ang resultang address ay nasa curve o hindi. Kung ang address ay nasa curve (~50% na pagkakataon), ang bump seed ay binabawasan ng 1 at ang address ay kinakalkula muli. Ang bump seed ay nagsisimula sa 255 at unti-unting umuulit pababa sa `bump = 254`, `bump = 253`, atbp. hanggang sa makita ang isang address na may mga ibinigay na seeds at bump na hindi matatagpuan sa ed2559 curve. Ibinabalik ng function na `findProgramAddress` ang resultang address at ang bump na ginamit upang maalis ito sa curve. Sa ganitong paraan, maaaring mabuo ang address kahit saan hangga't mayroon kang bump at buto.
+Upang makahanap ng public key  na hindi nasa curve ng ed2559, ang program ID at mga seeds na pinili ng developer (tulad ng isang string ng text) ay ipinapasa sa function na [`findProgramAddress(seeds, programid)`](https://solana-labs.github.io/solana-web3.js/classes/PublicKey.html#findProgramAddress). Pinagsasama ng function na ito ang program ID, mga seeds, at isang bump seed sa isang buffer at ipinapasa ito sa isang SHA256 hash upang makita kung ang resultang address ay nasa curve o hindi. Kung ang address ay nasa curve (~50% na pagkakataon), ang bump seed ay binabawasan ng 1 at ang address ay kinakalkula muli. Ang bump seed ay nagsisimula sa 255 at unti-unting umuulit pababa sa `bump = 254`, `bump = 253`, atbp. hanggang sa makita ang isang address na may mga ibinigay na seeds at bump na hindi matatagpuan sa ed2559 curve. Ini-re-returns ng function na `findProgramAddress` ang resultang address at ang bump na ginamit upang maalis ito sa curve. Sa ganitong paraan, maaaring mabuo ang address kahit saan hangga't mayroon kang bump at seeds.
 
 ![Screenshot ng ed2559 curve](../assets/ed2559-curve.png)
 
@@ -47,13 +47,13 @@ Ang mga PDA ay isang natatanging konsepto at isa sa mga pinakamahirap na bahagi 
 
 ### Bakit Ito Mahalaga?
 
-Ang derivation ng mga PDA ay mahalaga dahil ang mga buto na ginamit upang mahanap ang isang PDA ay ang ginagamit namin upang mahanap ang data. Halimbawa, ang isang simpleng program na gumagamit lamang ng isang PDA upang mag-imbak ng pandaigdigang estado ng programa ay maaaring gumamit ng isang simpleng seed na parirala tulad ng "GLOBAL_STATE". Kung gusto ng kliyente na basahin ang data mula sa PDA na ito, maaari nitong makuha ang address gamit ang program ID at ang parehong binhi.
+Ang derivation ng mga PDA ay mahalaga dahil ang mga seeds na ginamit upang mahanap ang isang PDA ay ang ginagamit namin upang mahanap ang data. Halimbawa, ang isang simpleng program na gumagamit lamang ng isang PDA upang mag-imbak ng pandaigdigang estado ng programa ay maaaring gumamit ng isang simpleng seed na parirala tulad ng "GLOBAL_STATE". Kung gusto ng kliyente na basahin ang data mula sa PDA na ito, maaari nitong makuha ang address gamit ang program ID at ang parehong binhi.
 
 ```tsx
 const [pda, bump] = await findProgramAddress(Buffer.from("GLOBAL_STATE"), programId)
 ```
 
-Sa mas kumplikadong mga program na nag-iimbak ng data na partikular sa user, karaniwan nang gamitin ang pampublikong key ng user bilang seed. Pinaghihiwalay nito ang data ng bawat user sa sarili nitong PDA. Ang paghihiwalay ay ginagawang posible para sa kliyente na mahanap ang data ng bawat user sa pamamagitan ng paghahanap ng address gamit ang program ID at pampublikong key ng user.
+Sa mas kumplikadong mga program na nag-iimbak ng data na partikular sa user, karaniwan nang gamitin ang public key ng user bilang seed. Pinaghihiwalay nito ang data ng bawat user sa sarili nitong PDA. Ang paghihiwalay ay ginagawang posible para sa kliyente na mahanap ang data ng bawat user sa pamamagitan ng paghahanap ng address gamit ang program ID at public key ng user.
 
 ```tsx
 const [pda, bump] = await web3.PublicKey.findProgramAddress(
@@ -64,7 +64,7 @@ const [pda, bump] = await web3.PublicKey.findProgramAddress(
 )
 ```
 
-Gayundin, kapag mayroong maramihang mga account sa bawat user, maaaring gumamit ang isang program ng isa o higit pang karagdagang mga binhi upang lumikha at tumukoy ng mga account. Halimbawa, sa isang note-taking app ay maaaring mayroong isang account sa bawat tala kung saan ang bawat PDA ay hinango kasama ang pampublikong key ng user at ang pamagat ng tala.
+Gayundin, kapag mayroong maramihang mga account sa bawat user, maaaring gumamit ang isang program ng isa o higit pang karagdagang mga seeds upang lumikha at tumukoy ng mga account. Halimbawa, sa isang note-taking app ay maaaring mayroong isang account sa bawat tala kung saan ang bawat PDA ay hinango kasama ang public key ng user at ang title ng note’s.
 
 ```tsx
 const [pda, bump] = await web3.PublicKey.findProgramAddress(
@@ -76,9 +76,9 @@ const [pda, bump] = await web3.PublicKey.findProgramAddress(
 )
 ```
 
-### Pagkuha ng Maramihang Programa Accounts
+### Getting Multiple Program Accounts
 
-Bilang karagdagan sa pagkuha ng mga address, maaari mong kunin ang lahat ng account na ginawa ng isang program gamit ang `connection.getProgramAccounts(programId)`. Nagbabalik ito ng hanay ng mga bagay kung saan ang bawat bagay ay may `pubkey` na property na kumakatawan sa pampublikong key ng account at isang `account` na property na may uri ng `AccountInfo`. Maaari mong gamitin ang property na `account` para makuha ang data ng account.
+Bilang karagdagan sa pagkuha ng mga address, maaari mong kunin ang lahat ng account na ginawa ng isang program gamit ang `connection.getProgramAccounts(programId)`. Nag re-returns ito ng array of objects kung saan ang bawat bagay ay may `pubkey` na property na kumakatawan sa public key ng account at isang `account` na property na may type ng `AccountInfo`. Maaari mong gamitin ang property na `account` para makuha ang data ng account.
 
 ```tsx
 const accounts = connection.getProgramAccounts(programId).then(accounts => {
@@ -137,7 +137,7 @@ Ang proyekto ay isang medyo simpleng Next.js application. Kabilang dito ang `Wal
 
 Tandaan na kapag nagpatakbo ka ng `npm run dev`, ang mga review na ipinapakita sa page ay mga pangungutya. Papalitan namin ang mga iyon para sa totoong deal.
 
-### 2. Lumikha ng buffer layout
+### 2. Mag-create ng buffer layout
 
 Tandaan na upang maayos na makipag-ugnayan sa isang Solana program, kailangan mong malaman kung paano nakaayos ang data nito.
 
@@ -208,9 +208,9 @@ export class Movie {
 }
 ```
 
-Sinusuri muna ng pamamaraan kung mayroon o wala ang buffer at ibabalik ang `null` kung wala ito. Susunod, ginagamit nito ang layout na ginawa namin upang i-decode ang buffer, pagkatapos ay ginagamit ang data upang bumuo at magbalik ng isang instance ng `Pelikula`. Kung nabigo ang pag-decode, itatala ng pamamaraan ang error at ibabalik ang `null`.
+Sinusuri muna ng pamamaraan kung mayroon o wala ang buffer at ibabalik ang `null` kung wala ito. Susunod, ginagamit nito ang layout na ginawa namin upang i-decode ang buffer, pagkatapos ay ginagamit ang data upang bumuo at mag-return ng isang instance ng `Pelikula`. Kung nabigo ang pag-decode, itatala ng pamamaraan ang error at ibabalik ang `null`.
 
-### 4. Kunin ang mga account sa pagsusuri ng pelikula
+### 4. I-fetch ang mga movie review accounts
 
 Ngayong mayroon na tayong paraan para i-deserialize ang data ng account, kailangan talaga nating kunin ang mga account. Buksan ang `MovieList.tsx` at i-import ang `@solana/web3.js`. Pagkatapos, gumawa ng bagong `Koneksyon` sa loob ng bahagi ng `MovieList`. Panghuli, palitan ang linyang `setMovies(Movie.mocks)` sa loob ng `useEffect` ng isang tawag sa `connection.getProgramAccounts`. Kunin ang resultang array at i-convert ito sa hanay ng mga pelikula at tawagan ang `setMovies`.
 
@@ -260,7 +260,7 @@ Ngayon ay iyong pagkakataon na bumuo ng isang bagay nang nakapag-iisa. Noong nak
 
 1. Maaari mong buuin ito mula sa simula o maaari mong i-download ang starter code [dito](https://github.com/Unboxed-Software/solana-student-intros-frontend/tree/solution-serialize-instruction-data).
 2. Gawin ang layout ng buffer ng account sa `StudentIntro.ts`. Ang data ng account ay naglalaman ng:
-    1. `pinasimulan` bilang isang unsigned, 8-bit integer na kumakatawan sa pagtuturo na tumakbo (dapat ay 1).
+    1. `pinasimulan` bilang isang unsigned, 8-bit integer na kumakatawan sa instruction na tumakbo (dapat ay 1).
     2. `pangalan` bilang isang string na kumakatawan sa pangalan ng mag-aaral.
     3. `mensahe` bilang isang string na kumakatawan sa mensaheng ibinahagi ng mag-aaral tungkol sa kanilang paglalakbay sa Solana.
 3. Gumawa ng static na paraan sa `StudentIntro.ts` na gagamit ng buffer layout upang i-deserialize ang buffer ng data ng account sa isang object na `StudentIntro`.
