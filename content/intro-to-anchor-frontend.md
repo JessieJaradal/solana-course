@@ -11,15 +11,15 @@ objectives:
 
 # TL;DR
 
-- Ang **IDL** ay isang file na kumakatawan sa istruktura ng isang Solana program. Ang mga program na isinulat at binuo gamit ang Anchor ay awtomatikong bumubuo ng kaukulang IDL. Ang ibig sabihin ng IDL ay Interface Description Language.
+- Ang **IDL** ay isang file na kumakatawan sa structure ng isang Solana program. Ang mga program na isinulat at binuo gamit ang Anchor ay awtomatikong bumubuo ng kaukulang IDL. Ang ibig sabihin ng IDL ay Interface Description Language.
 - Ang `@project-serum/anchor` ay isang Typescript client na kinabibilangan ng lahat ng kakailanganin mo para makipag-ugnayan sa mga Anchor program
 - Isang bagay na **Anchor `Provider`** ang isang `koneksyon` sa isang cluster at isang tinukoy na `wallet` upang paganahin ang pag-sign ng transaksyon
 - Isang bagay na **Anchor `Program`** ay nagbibigay ng custom na API upang makipag-ugnayan sa isang partikular na program. Lumilikha ka ng instance ng `Program` gamit ang IDL at `Provider` ng isang program.
 - Ang **Anchor `MethodsBuilder`** ay nagbibigay ng isang simpleng interface sa pamamagitan ng `Program` para sa mga tagubilin sa pagbuo at mga transaksyon
 
-# Pangkalahatang-ideya
+# Overview
 
-Pinapasimple ng Anchor ang proseso ng pakikipag-ugnayan sa mga programa ng Solana mula sa kliyente sa pamamagitan ng pagbibigay ng file ng Interface Description Language (IDL) na sumasalamin sa istruktura ng isang programa. Ang paggamit ng IDL kasabay ng Anchor's Typescript library (`@project-serum/anchor`) ay nagbibigay ng pinasimpleng format para sa pagbuo ng mga tagubilin at transaksyon.
+Pinapasimple ng Anchor ang proseso ng pakikipag-ugnayan sa mga programa ng Solana mula sa kliyente sa pamamagitan ng pagbibigay ng file ng Interface Description Language (IDL) na sumasalamin sa structure ng isang programa. Ang paggamit ng IDL kasabay ng Anchor's Typescript library (`@project-serum/anchor`) ay nagbibigay ng pinasimpleng format para sa pagbuo ng mga instructions at transaksyon.
 
 ```tsx
 // sends transaction
@@ -32,13 +32,13 @@ await program.methods
 
 Gumagana ito mula sa alinmang Typescript client, ito man ay isang frontend o integration test. Sa araling ito, tatalakayin natin kung paano gamitin ang `@project-serum/anchor` upang pasimplehin ang iyong pakikipag-ugnayan sa programa sa panig ng kliyente.
 
-## Anchor client-side na istraktura
+## Anchor client-side na structure
 
-Magsimula tayo sa pamamagitan ng pagtalakay sa pangunahing istraktura ng Typescript library ng Anchor. Ang pangunahing object na iyong gagamitin ay ang `Program` object. Ang isang instance ng `Program` ay kumakatawan sa isang partikular na programa ng Solana at nagbibigay ng custom na API para sa pagbabasa at pagsusulat sa programa.
+Magsimula tayo sa pamamagitan ng pagtalakay sa pangunahing structure ng Typescript library ng Anchor. Ang pangunahing object na iyong gagamitin ay ang `Program` object. Ang isang instance ng `Program` ay kumakatawan sa isang partikular na programa ng Solana at nagbibigay ng custom na API para sa pagbabasa at pagsusulat sa programa.
 
 Para gumawa ng instance ng `Program`, kakailanganin mo ang sumusunod:
 
-- IDL - file na kumakatawan sa istruktura ng isang programa
+- IDL - file na kumakatawan sa structure ng isang programa
 - `Connection` - ang cluster connection
 - `Wallet` - default na keypair na ginamit upang magbayad at pumirma ng mga transaksyon
 - `Provider` - i-encapsulate ang `Connection` sa isang Solana cluster at isang `Wallet`
@@ -91,24 +91,24 @@ Upang makakuha ng ideya sa impormasyong ibinibigay ng isang IDL, narito ang IDL 
 }
 ```
 
-Sa pag-inspeksyon sa IDL, makikita mo na ang program na ito ay naglalaman ng dalawang tagubilin (`pasimulan` at `increment`).
+Sa pag-inspeksyon sa IDL, makikita mo na ang program na ito ay naglalaman ng dalawang instructions (`pasimulan` at `increment`).
 
-Pansinin na bilang karagdagan sa pagtukoy sa mga tagubilin, ito ay tumutukoy sa mga account at input para sa bawat pagtuturo. Nangangailangan ng tatlong account ang tagubiling `initialize`:
+Pansinin na bilang karagdagan sa pagtukoy sa mga instructions, ito ay tumutukoy sa mga account at input para sa bawat instruction. Nangangailangan ng tatlong account ang instruction `initialize`:
 
-1. `counter` - ang bagong account na sinisimulan sa pagtuturo
+1. `counter` - ang bagong account na sinisimulan sa instruction
 2. `user` - ang nagbabayad para sa transaksyon at pagsisimula
 3. `systemProgram` - ang system program ay hinihimok upang simulan ang isang bagong account
 
-At ang pagtuturo ng `increment` ay nangangailangan ng dalawang account:
+At ang instruction ng `increment` ay nangangailangan ng dalawang account:
 
 1. `counter` - isang umiiral na account upang dagdagan ang field ng bilang
 2. `user` - ang nagbabayad mula sa transaksyon
 
-Sa pagtingin sa IDL, makikita mo na sa parehong mga tagubilin ang `user` ay kinakailangan bilang isang signer dahil ang `isSigner` na flag ay minarkahan bilang `true`. Bukod pa rito, hindi nangangailangan ng anumang karagdagang data ng pagtuturo ang alinman sa mga tagubilin dahil blangko ang seksyong `args` para sa dalawa.
+Sa pagtingin sa IDL, makikita mo na sa parehong mga instruction ang `user` ay kinakailangan bilang isang signer dahil ang `isSigner` na flag ay minarkahan bilang `true`. Bukod pa rito, hindi nangangailangan ng anumang karagdagang data ng instruction ang alinman sa mga instructions dahil blangko ang seksyong `args` para sa dalawa.
 
-Kung titingnan sa ibaba ang seksyong `account`, makikita mo na ang program ay naglalaman ng isang uri ng account na pinangalanang `Counter` na may isang field na `count` na may uri na `u64`.
+Kung titingnan sa ibaba ang seksyong `account`, makikita mo na ang program ay naglalaman ng isang type ng account na pinangalanang `Counter` na may isang field na `count` na may uri na `u64`.
 
-Bagama't hindi ibinibigay ng IDL ang mga detalye ng pagpapatupad para sa bawat pagtuturo, makakakuha tayo ng pangunahing ideya kung paano inaasahan ng on-chain program ang mga tagubilin na mabuo at makita ang istruktura ng mga account ng programa.
+Bagama't hindi ibinibigay ng IDL ang mga detalye ng pagpapatupad para sa bawat instruction, makakakuha tayo ng pangunahing ideya kung paano inaasahan ng on-chain program ang mga instructions na mabuo at makita ang structure ng mga account ng programa.
 
 Hindi alintana kung paano mo ito makuha, *kailangan mo* ng IDL file para makipag-ugnayan sa isang program gamit ang `@project-serum/anchor` package. Upang magamit ang IDL, kakailanganin mong isama ang IDL file sa iyong proyekto at pagkatapos ay i-import ang file.
 
@@ -181,7 +181,7 @@ Ang `WalletContextState` ay nagbibigay ng mas maraming functionality kumpara sa 
 
 Upang gawin ang object na `Provider` ginagamit mo ang `AnchorProvider` mula sa `@project-serum/anchor`.
 
-Ang `AnchorProvider` constructor ay tumatagal ng tatlong parameter:
+Ang `AnchorProvider` constructor ay kumukuha ng tatlong parameter:
 
 - `koneksyon` - ang `Koneksyon` sa Solana cluster
 - `wallet` - ang object na `Wallet`
@@ -199,7 +199,7 @@ const provider = new AnchorProvider(connection, wallet, {})
 setProvider(provider)
 ```
 
-### Programa
+### Program
 
 Kapag mayroon ka nang IDL at isang provider, maaari kang lumikha ng isang instance ng `Program`. Ang tagabuo ay nangangailangan ng tatlong mga parameter:
 
@@ -207,11 +207,11 @@ Kapag mayroon ka nang IDL at isang provider, maaari kang lumikha ng isang instan
 - `programId` - ang on-chain na address ng program bilang `string` o `PublicKey`
 - `Provider` - ang provider na tinalakay sa nakaraang seksyon
 
-Gumagawa ang object ng `Program` ng custom na API na magagamit mo para makipag-ugnayan sa isang Solana program. Ang API na ito ay ang one stop shop para sa lahat ng bagay na nauugnay sa pakikipag-ugnayan sa mga on-chain na programa. Sa iba pang mga bagay, maaari kang magpadala ng mga transaksyon, kumuha ng mga deserialized na account, mag-decode ng data ng pagtuturo, mag-subscribe sa mga pagbabago sa account, at makinig sa mga kaganapan. Maaari kang matuto nang higit pa tungkol sa klase ng `Program` [dito](https://coral-xyz.github.io/anchor/ts/classes/Program.html#constructor).
+Gumagawa ang object ng `Program` ng custom na API na magagamit mo para makipag-ugnayan sa isang Solana program. Ang API na ito ay ang one stop shop para sa lahat ng bagay na nauugnay sa pakikipag-ugnayan sa mga on-chain na programa. Sa iba pang mga bagay, maaari kang magpadala ng mga transaksyon, kumuha ng mga deserialized na account, mag-decode ng data ng instruction, mag-subscribe sa mga pagbabago sa account, at makinig sa mga kaganapan. Maaari kang matuto nang higit pa tungkol sa klase ng `Program` [dito](https://coral-xyz.github.io/anchor/ts/classes/Program.html#constructor).
 
-Upang gawin ang object na `Program`, i-import muna ang `Program` at `Idl` mula sa `@project-serum/anchor`. Ang `Idl` ay isang uri na magagamit mo kapag nagtatrabaho sa Typescript.
+Upang gawin ang object na `Program`, i-import muna ang `Program` at `Idl` mula sa `@project-serum/anchor`. Ang `Idl` ay isang type na magagamit mo kapag nagtatrabaho sa Typescript.
 
-Susunod, tukuyin ang `programId` ng program. Kailangan nating tahasan na sabihin ang `programId` dahil maaaring mayroong maraming mga program na may parehong istraktura ng IDL (ibig sabihin, kung ang parehong programa ay na-deploy nang maraming beses gamit ang iba't ibang mga address). Kapag nililikha ang object na `Program`, ginagamit ang default na `Provider` kung ang isa ay hindi tahasang tinukoy.
+Susunod, tukuyin ang `programId` ng program. Kailangan nating tahasan na i-state ang `programId` dahil maaaring mayroong maraming mga program na may parehong structure ng IDL (ibig sabihin, kung ang parehong programa ay na-deploy nang maraming beses gamit ang iba't ibang mga address). Kapag nililikha ang object na `Program`, ginagamit ang default na `Provider` kung ang isa ay hindi tahasang tinukoy.
 
 Sa kabuuan, ganito ang hitsura ng huling setup:
 
@@ -252,17 +252,17 @@ await program.methods
   .rpc()
 ```
 
-Sa hakbang-hakbang, ikaw ay:
+Sa step by step process, ang gagawin mo ay:
 
-1. Tumawag sa `mga pamamaraan` sa `program` - ito ang tagabuo ng API para sa paglikha ng mga tawag sa pagtuturo na nauugnay sa IDL ng programa
-2. Tawagan ang pangalan ng pagtuturo bilang `.instructionName(instructionDataInputs)` - tawagan lang ang pagtuturo gamit ang tuldok na syntax at ang pangalan ng pagtuturo, na nagpapasa sa anumang mga argumento ng pagtuturo bilang mga halagang pinaghihiwalay ng kuwit
-3. Tumawag sa `accounts` - gamit ang tuldok na syntax, tumawag sa `.accounts`, pagpasa sa isang bagay sa bawat account na inaasahan ng pagtuturo batay sa IDL
-4. Opsyonal na tawagan ang `signers` - gamit ang dot syntax, tawagan ang `.signers`, pagpasa sa hanay ng mga karagdagang signer na kinakailangan ng pagtuturo
-5. Tumawag sa `rpc` - ang paraang ito ay lumilikha at nagpapadala ng nilagdaang transaksyon na may tinukoy na tagubilin at nagbabalik ng `TransactionSignature`. Kapag gumagamit ng `.rpc`, ang `Wallet` mula sa `Provider` ay awtomatikong kasama bilang isang pumirma at hindi kailangang tahasang nakalista.
+1. Tumawag sa `mga pamamaraan` sa `program` - ito ang tagabuo ng API para sa mag-create ng mga tawag sa instruction na related sa IDL ng programa
+2. Tawagan ang pangalan ng instruction bilang `.instructionName(instructionDataInputs)` - tawagan lang ang instruction gamit ang tuldok na syntax at ang pangalan ng instruction, na nagpapasa sa anumang mga argumento ng instruction bilang mga halagang pinaghihiwalay ng kuwit
+3. Tumawag sa `accounts` - gamit ang tuldok na syntax, tumawag sa `.accounts`, pagpasa sa isang bagay sa bawat account na inaasahan ng instruction batay sa IDL
+4. Opsyonal na tawagan ang `signers` - gamit ang dot syntax, tawagan ang `.signers`, pagpasa sa hanay ng mga karagdagang signer na kinakailangan ng instruction
+5. Tumawag sa `rpc` - ang paraang ito ay lumilikha at nagpapadala ng nilagdaang transaksyon na may tinukoy na instruction at nag-return ng `TransactionSignature`. Kapag gumagamit ng `.rpc`, ang `Wallet` mula sa `Provider` ay awtomatikong kasama bilang isang pumirma at hindi kailangang tahasang nakalista.
 
 Tandaan na kung walang karagdagang pumirma ang kinakailangan sa pamamagitan ng pagtuturo maliban sa `Wallet` na tinukoy kasama ng `Provider`, ang `.signer([])` na linya ay maaaring hindi isama.
 
-Maaari mo ring direktang buuin ang transaksyon sa pamamagitan ng pagpapalit ng `.rpc()` sa `.transaction()`. Bumubuo ito ng object na `Transaction` gamit ang tinukoy na pagtuturo.
+Maaari mo ring direktang buuin ang transaksyon sa pamamagitan ng pagpapalit ng `.rpc()` sa `.transaction()`. Bumubuo ito ng object na `Transaction` gamit ang tinukoy na instruction.
 
 ```tsx
 // creates transaction
@@ -274,7 +274,7 @@ const transaction = await program.methods
 await sendTransaction(transaction, connection)
 ```
 
-Katulad nito, maaari mong gamitin ang parehong format upang bumuo ng isang pagtuturo gamit ang `.instruction()` at pagkatapos ay manu-manong idagdag ang mga tagubilin sa isang bagong transaksyon. Bumubuo ito ng object na `TransactionInstruction` gamit ang tinukoy na pagtuturo.
+Katulad nito, maaari mong gamitin ang parehong format upang bumuo ng isang instruction gamit ang `.instruction()` at pagkatapos ay manu-manong idagdag ang mga instructions sa isang bagong transaksyon. Bumubuo ito ng object na `TransactionInstruction` gamit ang specified na instruction.
 
 ```tsx
 // creates first instruction
@@ -296,13 +296,11 @@ const transaction = new Transaction().add(instructionOne, instructionTwo)
 await sendTransaction(transaction, connection)
 ```
 
-In summary, the Anchor `MethodsBuilder` provides a simplified and more flexible way to interact with on-chain programs. You can build an instruction, a transaction, or build and send a transaction using basically the same format without having to manually serialize or deserialize the accounts or instruction data.
+Sa buod, ang Anchor `MethodsBuilder` ay nagbibigay ng pinasimple at mas flexible na paraan upang makipag-ugnayan sa mga on-chain na programa. Maaari kang bumuo ng isang instruction, isang transaksyon, o bumuo at magpadala ng isang transaksyon gamit ang karaniwang parehong format nang hindi kinakailangang manu-manong i-serialize o deserialize ang mga account o data ng instruction.
 
-Sa buod, ang Anchor `MethodsBuilder` ay nagbibigay ng pinasimple at mas nababaluktot na paraan upang makipag-ugnayan sa mga on-chain na programa. Maaari kang bumuo ng isang pagtuturo, isang transaksyon, o bumuo at magpadala ng isang transaksyon gamit ang karaniwang parehong format nang hindi kinakailangang manu-manong i-serialize o deserialize ang mga account o data ng pagtuturo.
+# Fetch program accounts
 
-## Kunin ang mga account ng program
-
-Binibigyang-daan ka rin ng object na `Program` na madaling makuha at i-filter ang mga account ng program. Tawagan lang ang `account` sa `program` at pagkatapos ay tukuyin ang pangalan ng uri ng account na makikita sa IDL. Pagkatapos ay i-deserialize ng Anchor at ibinabalik ang lahat ng account gaya ng tinukoy.
+Binibigyang-daan ka rin ng object na `Program` na madaling makuha at i-filter ang mga account ng program. Tawagan lang ang `account` sa `program` at pagkatapos ay tukuyin ang pangalan ng uri ng account na makikita sa IDL. Pagkatapos ay i-deserialize ng Anchor at i-returns ang lahat ng account na specified.
 
 Ipinapakita ng halimbawa sa ibaba kung paano mo makukuha ang lahat ng umiiral nang `counter` na account para sa Counter program.
 
@@ -311,9 +309,9 @@ Ipinapakita ng halimbawa sa ibaba kung paano mo makukuha ang lahat ng umiiral na
 const accounts = await program.account.counter.all()
 ```
 
-Maaari ka ring maglapat ng filter sa pamamagitan ng paggamit ng `memcmp` at pagkatapos ay pagtukoy ng `offset` at ang `bytes` upang i-filter.
+Maaari ka ring maglapat ng filter sa pamamagitan ng paggamit ng `memcmp` at pagkatapos mag-specifying ng `offset` at ang `bytes` upang i-filter.
 
-Kinukuha ng halimbawa sa ibaba ang lahat ng `counter` na account na may `count` na 0. Tandaan na ang `offset` ng 8 ay para sa 8 byte na discriminator na ginagamit ng Anchor upang matukoy ang mga uri ng account. Ang ika-9 na byte ay kung saan nagsisimula ang field na `count`. Maaari kang sumangguni sa IDL upang makita na ang susunod na byte ay nag-iimbak ng `count` na field ng uri na `u64`. Ang anchor pagkatapos ay i-filter at ibabalik ang lahat ng mga account na may tumutugmang mga byte sa parehong posisyon.
+Kinukuha ng halimbawa sa ibaba ang lahat ng `counter` na account na may `count` na 0. Tandaan na ang `offset` ng 8 ay para sa 8 byte na discriminator na ginagamit ng Anchor upang matukoy ang mga type ng account. Ang ika-9 na byte ay kung saan nagsisimula ang field na `count`. Maaari kang sumangguni sa IDL upang makita na ang susunod na byte ay nag-iimbak ng `count` na field ng uri na `u64`. Ang anchor pagkatapos ay i-filter at i-return ang lahat ng mga account na may tumutugmang mga byte sa parehong posisyon.
 
 ```tsx
 const accounts = await program.account.counter.all([
@@ -326,7 +324,7 @@ const accounts = await program.account.counter.all([
 ])
 ```
 
-Bilang kahalili, maaari mo ring makuha ang data ng deserialized na account para sa isang partikular na account gamit ang `fetch` kung alam mo ang address ng account na iyong hinahanap.
+Bilang kahalili, maaari mo ring makuha ang data ng deserialized na account para sa isang specific na account gamit ang `fetch` kung alam mo ang address ng account na iyong hinahanap.
 
 ```tsx
 const account = await program.account.counter.fetch(ACCOUNT_ADDRESS)
@@ -340,10 +338,10 @@ const accounts = await program.account.counter.fetchMultiple([ACCOUNT_ADDRESS_ON
 
 # Demo
 
-Sanayin natin ito nang sama-sama sa pamamagitan ng pagbuo ng frontend para sa Counter program mula sa nakaraang aralin. Bilang paalala, may dalawang tagubilin ang Counter program:
+Sanayin natin ito nang sama-sama sa pamamagitan ng pagbuo ng frontend para sa Counter program mula sa nakaraang aralin. Bilang paalala, may dalawang instructions ang Counter program:
 
-- `initialize` - nagpapasimula ng bagong `Counter` account at itinatakda ang `count` sa `0`
-- `increment` - dinadagdagan ang `count` sa isang umiiral na `Counter` account
+- `initialize` - mag-initializes ng bagong `Counter` account at itinatakda ang `count` sa `0`
+- `increment` - dinadagdagan ang `count` sa isang existing na `Counter` account
 
 ### 1. I-download ang starter code
 
@@ -355,7 +353,7 @@ Ang proyektong ito ay isang simpleng Next.js application. Kabilang dito ang `Wal
 
 Upang magsimula, kumpletuhin natin ang setup para gawin ang object na `Program` sa component na `Initialize.tsx`.
 
-Tandaan, kakailanganin namin ng isang instance ng `Program` para magamit ang Anchor `MethodsBuilder` para gamitin ang mga tagubilin sa aming program. Para diyan, kakailanganin namin ng Anchor wallet at isang koneksyon, na makukuha namin mula sa `useAnchorWallet` at `useConnection` hook. Gumawa din tayo ng `useState` para makuha ang instance ng program.
+Tandaan, kakailanganin namin ng isang instance ng `Program` para magamit ang Anchor `MethodsBuilder` para gamitin ang mga instructions sa aming program. Para diyan, kakailanganin namin ng Anchor wallet at isang koneksyon, na makukuha namin mula sa `useAnchorWallet` at `useConnection` hook. Gumawa din tayo ng `useState` para makuha ang instance ng program.
 
 ```tsx
 export const Initialize: FC<Props> = ({ setCounter }) => {
@@ -372,7 +370,7 @@ Gamit iyon, maaari kaming gumawa ng aktwal na instance ng `Program`. Gawin natin
 
 Una kailangan nating kunin ang default na provider kung mayroon na ito, o gawin ito kung wala pa. Magagawa natin iyon sa pamamagitan ng pagtawag sa `getProvider` sa loob ng try/catch block. Kung ang isang error ay itinapon, nangangahulugan iyon na walang default na provider at kailangan naming gumawa ng isa.
 
-Kapag mayroon na kaming provider, makakagawa kami ng instance ng `Program`.
+Kapag mayroon na tayong provider, makakapag-construct na tayo ng instance ng `Program`.
 
 ```tsx
 useEffect(() => {
@@ -390,7 +388,7 @@ useEffect(() => {
 }, [])
 ```
 
-Ngayong natapos na namin ang pag-setup ng Anchor, maaari naming aktwal na i-invoke ang `initialize` na pagtuturo ng program. Gagawin namin ito sa loob ng function na `onClick`.
+Ngayong natapos na namin ang pag-setup ng Anchor, maaari naming aktwal na i-invoke ang `initialize` na instruction ng program. Gagawin namin ito sa loob ng function na `onClick`.
 
 Una, kakailanganin naming bumuo ng bagong `Keypair` para sa bagong `Counter` account dahil magsisimula kami ng account sa unang pagkakataon.
 
@@ -446,7 +444,7 @@ export const Increment: FC<Props> = ({ counter, setTransactionUrl }) => {
 }
 ```
 
-Susunod, gamitin natin ang Anchor `MethodsBuilder` para makabuo ng bagong tagubilin para gamitin ang `increment` na pagtuturo. Muli, maaaring ipahiwatig ng Anchor ang `user` account mula sa wallet kaya kailangan lang nating isama ang `counter` account.
+Susunod, gamitin natin ang Anchor `MethodsBuilder` para makabuo ng bagong instruction para gamitin ang `increment` na instruction. Muli, maaaring ipahiwatig ng Anchor ang `user` account mula sa wallet kaya kailangan lang nating isama ang `counter` account.
 
 ```tsx
 const onClick = async () => {
@@ -462,7 +460,7 @@ const onClick = async () => {
 }
 ```
 
-### 5. Ipakita ang tamang bilang
+### 4. Display the correct count
 
 Ngayon na maaari na nating simulan ang counter program at dagdagan ang bilang, kailangan nating makuha ang ating UI upang ipakita ang bilang na nakaimbak sa counter account.
 
@@ -479,7 +477,7 @@ const refreshCount = async (program) => {
 
 Napakasimple sa Anchor!
 
-### 5. Subukan ang frontend
+### 5. I-test ang frontend
 
 Sa puntong ito, dapat gumana ang lahat! Maaari mong subukan ang frontend sa pamamagitan ng pagpapatakbo ng `npm run dev`.
 
@@ -503,14 +501,14 @@ Kung kailangan mo ng mas maraming oras sa proyektong ito para maging komportable
 
 # Hamon
 
-Ngayon ay iyong pagkakataon na bumuo ng isang bagay nang nakapag-iisa. Bilang karagdagan sa ginawa namin sa demo, subukang gumawa ng bagong bahagi sa frontend na nagpapatupad ng isang button upang bawasan ang counter.
+Ngayon ay iyong pagkakataon na bumuo ng isang bagay nang independently. Bilang karagdagan sa ginawa namin sa demo, subukang gumawa ng bagong bahagi sa frontend na nagpapatupad ng isang button upang bawasan ang counter.
 
 Bago buuin ang bahagi sa frontend, kakailanganin mo munang:
 
-1. Bumuo at mag-deploy ng bagong program na nagpapatupad ng pagtuturo ng `decrement`
+1. Bumuo at mag-deploy ng bagong program na nagpapatupad ng instruction ng `decrement`
 2. I-update ang IDL file sa frontend gamit ang isa mula sa iyong bagong program
 3. I-update ang `programId` gamit ang isa mula sa iyong bagong program
 
 Kung kailangan mo ng tulong, huwag mag-atubiling sumangguni sa program na ito [dito](https://github.com/Unboxed-Software/anchor-counter-program/tree/solution-decrement).
 
-Subukang gawin ito nang nakapag-iisa kung kaya mo! Ngunit kung natigil ka, huwag mag-atubiling sumangguni sa [solution code](https://github.com/Unboxed-Software/anchor-ping-frontend/tree/solution-decrement).
+Subukang gawin ito nang mag-iisa kung kaya mo! Ngunit kung nahihirapan ka, huwag mag-atubiling sumangguni sa [solution code](https://github.com/Unboxed-Software/anchor-ping-frontend/tree/solution-decrement).
