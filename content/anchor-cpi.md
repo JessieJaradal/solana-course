@@ -16,7 +16,7 @@ objectives:
 
 # Overview
 
-Kung iisipin mo ang [first CPI lesson CPI lesson](cpi.md), maaalala mo na ang paggawa ng mga CPI ay maaaring maging mahirap gamit ang vanilla Rust. Ang Anchor ay ginagawa itong mas simple, lalo na kung ang program na iyong ini-invoke ay isa ring Anchor program na ang crate ay maa-access mo.
+Kung iisipin mo ang [first CPI lesson](cpi.md), maaalala mo na ang paggawa ng mga CPI ay maaaring maging mahirap gamit ang vanilla Rust. Ang Anchor ay ginagawa itong mas simple, lalo na kung ang program na iyong ini-invoke ay isa ring Anchor program na ang crate ay maa-access mo.
 
 Sa araling ito, matututunan mo kung paano bumuo ng Anchor CPI. Matututuhan mo rin kung paano throw ng mga custom na error mula sa Anchor program para makapagsimula kang magsulat ng mas sopistikadong mga Anchor program.
 
@@ -37,7 +37,7 @@ Ang uri ng `CpiContext` ay tumutukoy sa non-argument inputs para sa mga cross pr
 - `accounts` - listahan ng mga account na kinakailangan para sa instruction na ini-invoke
 - `remaining_accounts` - anumang natitirang account
 - `program` - ang program ID ng program na ini-invoke
-- `signer_seeds` - kung ang PDA ay nag signing, i-sasama nito ang mga seeds na kinakailangan upang ma-derived ang PD
+- `signer_seeds` - kung ang PDA ay nag signing, i-sasama nito ang mga seeds na kinakailangan upang ma-derived ang PDA
 
 ```rust
 pub struct CpiContext<'a, 'b, 'c, 'info, T>
@@ -71,7 +71,7 @@ pub fn new(
 }
 ```
 
-Ginagamit mo ang `CpiContext::new_with_signer` upang bumuo ng bagong instance kung kailan nag-signing on behalf of PDA para sa CPI.
+Ginagamit mo ang `CpiContext::new_with_signer` upang bumuo ng bagong instance kung kailan mag-sign on behalf of PDA para sa CPI.
 
 ```rust
 CpiContext::new_with_signer(cpi_program, cpi_accounts, seeds)
@@ -123,7 +123,7 @@ Sa pagdaragdag ng `features = ["cpi"]`, pinagana mo ang feature na `cpi` at ang 
 
 Ipinapakita ng module ng `cpi` ang mga instructions ng `callee` bilang isang Rust function na kumukuha bilang arguments ng `CpiContext` at anumang karagdagang instruction data. Gumagamit ang mga function na ito ng parehong format gaya ng mga function ng instruction sa iyong mga Anchor program, gamit lang ang `CpiContext` sa halip na `Context`. Ipinapakita din ng module na `cpi` ang mga istruktura ng account na kinakailangan para sa pagtawag sa mga tagubilin.
 
-Halimbawa, kung ang `callee` ay may instruction na `do_something` na nag-rerequires ng mga account na tinukoy sa `DoSomething` struct, maaari mong i-invoke ang `do_something` gaya ng sumusunod:
+Halimbawa, kung ang `callee` ay may instruction na `do_something` na nag-rerequire ng mga account na tinukoy sa `DoSomething` struct, maaari mong i-invoke ang `do_something` gaya ng sumusunod:
 
 ```rust
 use anchor_lang::prelude::*;
@@ -202,7 +202,7 @@ Kapag ang program na iyong tinatawagan ay *hindi* isang Anchor program, mayroong
 
 Malalim na tayo sa topic ng Anchor, sa puntong ito na mahalagang malaman kung paano gumawa ng mga custom errors.
 
-Sa bandang huli, lahat ng program ay nag re-return nang parehong type ng error: [`ProgramError`](https://docs.rs/solana-program/latest/solana_program/program_error/enum.ProgramError.html). Gayunpaman, kapag nagsusulat ng isang programa gamit ang Anchor maaari mong gamitin ang `AnchorError` bilang abstraction sa ibabaw ng `ProgramError`. Ang abstraction na ito ay nagbibigay ng karagdagang impormasyon kapag nag-fails ang program, kabilang ang:
+Sa bandang huli, lahat ng program ay nag re-return nang parehong type ng error: [`ProgramError`](https://docs.rs/solana-program/latest/solana_program/program_error/enum.ProgramError.html). Gayunpaman, kapag nagsusulat ng isang programa gamit ang Anchor maaari mong gamitin ang `AnchorError` bilang abstraction sa ibabaw ng `ProgramError`. Ang abstraction na ito ay nagbibigay ng karagdagang impormasyon kapag nag-fail ang program, kabilang ang:
 
 - Ang pangalan at numero ng error
 - Lokasyon sa code kung saan itinapon ang error
@@ -255,7 +255,7 @@ pub enum MyError {
 }
 ```
 
-Bukod doon, maaari rin gamitin ang [require](https://docs.rs/anchor-lang/latest/anchor_lang/macro.require.html) macro para pasimplehin ang returning ng error. Ang code sa itaas ay maaaring i-refactored sa sumusunod:
+Bukod doon, maaari rin gamitin ang [require](https://docs.rs/anchor-lang/latest/anchor_lang/macro.require.html) macro para pasimplehin ang returning ng error. Ang code sa itaas ay maaaring i-refactor sa sumusunod:
 
 ```rust
 #[program]
@@ -303,7 +303,7 @@ anchor-spl = "0.25.0"
 
 ### 3. Magsimula ng reward token
 
-Kasunod nito, mag-navigate sa `lib.rs` at gumawa ng instruction para makapag-initialize ng bagong token mint. Ito ang magiging token na mined sa tuwing ang isang user ay nag-iwann ng review. Tandaan na hindi namin kailangang isama ang anumang custom na lohika ng pagtuturo dahil ang pagsisimula ay maaaring ganap na mahawakan sa pamamagitan ng mga hadlang sa Anchor.
+Kasunod nito, mag-navigate sa `lib.rs` at gumawa ng instruction para makapag-initialize ng bagong token mint. Ito ang magiging token na mined sa tuwing ang isang user ay nag-iwan ng review. Tandaan na hindi namin kailangang isama ang anumang custom na lohika ng pagtuturo dahil ang pagsisimula ay maaaring ganap na mahawakan sa pamamagitan ng mga hadlang sa Anchor.
 
 ```rust
 pub fn initialize_token_mint(_ctx: Context<InitializeMint>) -> Result<()> {
@@ -336,7 +336,7 @@ pub struct InitializeMint<'info> {
 }
 ```
 
-Maaaring may ilang mga constraints sa itaas na hindi mo pa nakikita. Ang pagdaragdag ng `mint::decimals` at `mint::authority` kasama ng `init` ay nagsisiguro na ang account ay ma-initialized bilang isang bagong token mint na may naaangkop na mga decimal at mint authority set.
+Maaaring may ilang mga constraints sa itaas na hindi mo pa nakikita. Ang pagdaragdag ng `mint::decimals` at `mint::authority` kasama ng `init` ay nagsisiguro na ang account ay ma-initialize bilang isang bagong token mint na may naaangkop na mga decimal at mint authority set.
 
 ### 4. Anchor Error
 
@@ -397,14 +397,14 @@ pub struct AddMovieReview<'info> {
 }
 ```
 
-Muli, ang ilan sa mga constraints sa itaas ay maaaring hindi pamilyar sa iyo. Ang `associated_token::mint` at `associated_token::authority` na mga constraint kasama ang `init_if_needed` constraint ay nagsisiguro na kung ang account ay hindi pa na-initialized, ito ay pasisimulan bilang isang nauugnay na token account para sa tinukoy na mint at authority.
+Muli, ang ilan sa mga constraints sa itaas ay maaaring hindi pamilyar sa iyo. Ang `associated_token::mint` at `associated_token::authority` na mga constraint kasama ang `init_if_needed` constraint ay nagsisiguro na kung ang account ay hindi pa na-initialize, ito ay pasisimulan bilang isang nauugnay na token account para sa tinukoy na mint at authority.
 
 Susunod, i-update natin ang tagubiling `add_movie_review` para gawin ang sumusunod:
 
 - Suriin na ang `rating` ay wasto. Kung ito ay hindi wastong rating, ibalik ang `InvalidRating` na error.
 - Gumawa ng CPI sa pagtuturo ng `mint_to` ng token program gamit ang mint authority PDA bilang isang pumirma. Tandaan na gagawa kami ng 10 token sa user ngunit kailangan naming mag-adjust para sa mint decimal sa pamamagitan ng paggawa nitong `10*10^6`.
 
-Sa kabutihang palad, maaari naming gamitin ang `anchor_spl` crate upang ma-access ang mga function at uri ng helper tulad ng `mint_to` at `MintTo` para sa pagbuo ng aming CPI sa Token Program. Ang `mint_to` ay kumukuha ng `CpiContext` at integer bilang isang arguments, kung saan kinakatawan ng integer ang bilang ng mga token na gagawin. Maaaring gamitin ang `MintTo` para sa listahan ng mga account na kailangan ng instruction ng mint.
+Sa kabutihang palad, maaari naming gamitin ang `anchor_spl` crate upang ma-access ang mga function at uri ng helper tulad ng `mint_to` at `MintTo` para sa pagbuo ng aming CPI sa Token Program. Ang `mint_to` ay kumukuha ng `CpiContext` at integer bilang isang argument, kung saan kinakatawan ng integer ang bilang ng mga token na gagawin. Maaaring gamitin ang `MintTo` para sa listahan ng mga account na kailangan ng instruction ng mint.
 
 ```rust
 pub fn add_movie_review(ctx: Context<AddMovieReview>, title: String, description: String, rating: u8) -> Result<()> {
