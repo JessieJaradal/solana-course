@@ -151,7 +151,7 @@ pub mod my_program {
 
 Sa halimbawang ito, ginagamit ng `test_function` ang `cfg!` na macro upang suriin ang halaga ng feature na `local-testing` sa runtime. Kung ang feature na `local-testing` ay pinagana, ang unang code path ay isasagawa. Kung ang feature na `local-testing` ay hindi pinagana, ang pangalawang code path ang ipapatupad sa halip.
 
-### Admin-only instructions
+## Admin-only instructions
 
 Ang mga feature na flag ay mahusay para sa pagsasaayos ng mga value at path ng code sa compilation, ngunit hindi ito nakakatulong nang malaki kung kailangan mong ayusin ang isang bagay pagkatapos mong i-deploy ang iyong program.
 
@@ -701,7 +701,7 @@ Susunod, i-update ang test file na may tatlo pang tests na testing that:
 3. Ang config account ay maaaring matagumpay na ma-update ng admin
 4. Ang config account ay hindi maaaring ma-update ng iba maliban sa admin
 
-I-initializes ng unang test ang program config account at bini-verify na ang tamang bayad ay nakatakda at na ang tamang admin ay naka-store sa program config account.
+Ini-initialize ng unang test ang program config account at bini-verify na ang tamang bayad ay nakatakda at na ang tamang admin ay naka-store sa program config account.
 
 ```typescript
 it("Initialize Program Config Account", async () => {
