@@ -64,7 +64,7 @@ const [pda, bump] = await web3.PublicKey.findProgramAddress(
 )
 ```
 
-Gayundin, kapag mayroong maramihang mga account sa bawat user, maaaring gumamit ang isang program ng isa o higit pang karagdagang mga seeds upang lumikha at tumukoy ng mga account. Halimbawa, sa isang note-taking app ay maaaring mayroong isang account sa bawat tala kung saan ang bawat PDA ay hinango kasama ang public key ng user at ang title ng note’s.
+Gayundin, kapag mayroong maramihang mga account sa bawat user, maaaring gumamit ang isang program ng isa o higit pang karagdagang mga seeds upang lumikha at tumukoy ng mga account. Halimbawa, sa isang note-taking app ay maaaring mayroong isang account sa bawat tala kung saan ang bawat PDA ay hinango kasama ang public key ng user at ang title ng note.
 
 ```tsx
 const [pda, bump] = await web3.PublicKey.findProgramAddress(
@@ -78,7 +78,7 @@ const [pda, bump] = await web3.PublicKey.findProgramAddress(
 
 ### Getting Multiple Program Accounts
 
-Bilang karagdagan sa pagkuha ng mga address, maaari mong kunin ang lahat ng account na ginawa ng isang program gamit ang `connection.getProgramAccounts(programId)`. Nag re-returns ito ng array of objects kung saan ang bawat bagay ay may `pubkey` na property na kumakatawan sa public key ng account at isang `account` na property na may type ng `AccountInfo`. Maaari mong gamitin ang property na `account` para makuha ang data ng account.
+Bilang karagdagan sa pagkuha ng mga address, maaari mong kunin ang lahat ng account na ginawa ng isang program gamit ang `connection.getProgramAccounts(programId)`. Nag re-return ito ng array of objects kung saan ang bawat bagay ay may `pubkey` na property na kumakatawan sa public key ng account at isang `account` na property na may type ng `AccountInfo`. Maaari mong gamitin ang property na `account` para makuha ang data ng account.
 
 ```tsx
 const accounts = connection.getProgramAccounts(programId).then(accounts => {
