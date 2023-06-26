@@ -130,7 +130,7 @@ async function getBalanceUsingWeb3(address: PublicKey): Promise<number> {
 }
 ```
 
-Ang na-returned na balanse ay nasa fractional SOL na tinatawag na lamports. Ang isang lamport ay kumakatawan sa 0.000000001 SOL. Karamihan sa mga oras kapag nakikitungo sa SOL ang system ay gagamit ng mga lamport sa halip na SOL. Nagbibigay ang Web3.js ng patuloy na `LAMPORTS_PER_SOL` para sa paggawa ng mabilis na mga conversion.
+Ang na-return na balanse ay nasa fractional SOL na tinatawag na lamports. Ang isang lamport ay kumakatawan sa 0.000000001 SOL. Karamihan sa mga oras kapag nakikitungo sa SOL ang system ay gagamit ng mga lamport sa halip na SOL. Nagbibigay ang Web3.js ng patuloy na `LAMPORTS_PER_SOL` para sa paggawa ng mabilis na mga conversion.
 
 ...at tulad niyan, ngayon alam mo na kung paano magbasa ng data mula sa Solana blockchain! Kapag nakapasok na tayo sa custom na data, magiging mas kumplikado ang mga bagay. Ngunit sa ngayon, isabuhay natin ang natutunan natin sa ngayon.
 
