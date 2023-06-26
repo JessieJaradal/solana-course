@@ -511,4 +511,4 @@ Bago buuin ang bahagi sa frontend, kakailanganin mo munang:
 
 Kung kailangan mo ng tulong, huwag mag-atubiling sumangguni sa program na ito [dito](https://github.com/Unboxed-Software/anchor-counter-program/tree/solution-decrement).
 
-Subukang gawin ito nang mag-iisa kung kaya mo! Ngunit kung nahihirapan ka, huwag mag-atubiling sumangguni sa [solution code](https://github.com/Unboxed-Software/anchor-ping-frontend/tree/solution-decrement).
+Subukang gawin ito nang mag-isa kung kaya mo! Ngunit kung nahihirapan ka, huwag mag-atubiling sumangguni sa [solution code](https://github.com/Unboxed-Software/anchor-ping-frontend/tree/solution-decrement).
