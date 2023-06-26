@@ -29,7 +29,7 @@ Maaari itong maging kapaki-pakinabang kapag ang mga account na kinakailangan ng 
 
 Ang halimbawa sa ibaba ay may kasamang tagubiling `update_admin` na nag-a-update sa field ng `admin` na nakaimbak sa isang `admin_config` na account.
 
-Ang instruction ay ang nawawalang data validation check upang ma-verify ang `admin` na account na nag signing sa transaksyon ay tumutugma sa `admin` na nakaimbak sa `admin_config` account. Nangangahulugan ito ng anumang account na pumipirma sa transaksyon at ipinasa sa instruction dahil maaaring i-update ng `admin` account ang `admin_config` account.
+Ang instruction ay ang nawawalang data validation check upang ma-verify ang `admin` na account na nag-sign sa transaksyon ay tumutugma sa `admin` na nakaimbak sa `admin_config` account. Nangangahulugan ito ng anumang account na pumipirma sa transaksyon at ipinasa sa instruction dahil maaaring i-update ng `admin` account ang `admin_config` account.
 
 ```rust
 use anchor_lang::prelude::*;
@@ -110,7 +110,7 @@ pub struct AdminConfig {
 
 Pinapasimple ito ng Anchor gamit ang constraints na `has_one`. Maaari mong gamitin ang constraints na `has_one` upang ilipat ang data validation check mula sa instruction logic patungo sa struct ng `UpdateAdmin`.
 
-Sa halimbawa sa ibaba, ang `has_one = admin` ay tumutukoy na ang `admin` account na nag-signing sa transaksyon ay dapat na tumugma sa `admin` na field na nakaimbak sa `admin_config` account. Upang magamit ang constraints na `has_one`, ang convention ng pagbibigay ng pangalan ng field ng data sa account ay dapat na konsistent  sa pagbibigay ng pangalan sa struct ng pagpapatunay ng account.
+Sa halimbawa sa ibaba, ang `has_one = admin` ay tumutukoy na ang `admin` account na nag-sign sa transaksyon ay dapat na tumugma sa `admin` na field na nakaimbak sa `admin_config` account. Upang magamit ang constraints na `has_one`, ang convention ng pagbibigay ng pangalan ng field ng data sa account ay dapat na konsistent  sa pagbibigay ng pangalan sa struct ng pagpapatunay ng account.
 
 ```rust
 use anchor_lang::prelude::*;
@@ -145,7 +145,7 @@ pub struct AdminConfig {
 }
 ```
 
-Bilang kahalili, maaari mong gamitin ang `constraint` upang manu-manong magdagdag ng isang expression na dapat evaluate to true upang magpatuloy ang pagpapatupad. Ito ay kapaki-pakinabang kung ang pagbibigay ng pangalan ay hindi konsistent o kapag kailangan mo ng mas kumplikadong expression upang ganap na mapatunayan ang papasok na data.
+Bilang kahalili, maaari mong gamitin ang `constraint` upang manu-manong magdagdag ng isang expression na dapat mag-evaluate to true upang magpatuloy ang pagpapatupad. Ito ay kapaki-pakinabang kung ang pagbibigay ng pangalan ay hindi konsistent o kapag kailangan mo ng mas kumplikadong expression upang ganap na mapatunayan ang papasok na data.
 
 ```rust
 #[derive(Accounts)]
@@ -373,7 +373,7 @@ pub struct SecureWithdraw<'info> {
 
 ### 4. Subukan ang instruction ng `secure_withdraw`
 
-Ngayon, subukan natin ang tagubiling `secure_withdraw` gamit ang dalawang pagsubok: isa na gumagamit ng `walletFake` bilang awtoridad at isa na gumagamit ng `wallet` bilang awtoridad. Inaasahan namin na ang unang invocation ay mag return ng error at ang pangalawa ay magtatagumpay.
+Ngayon, subukan natin ang instruction na `secure_withdraw` gamit ang dalawang tests: isa na gumagamit ng `walletFake` bilang awtoridad at isa na gumagamit ng `wallet` bilang awtoridad. Inaasahan namin na ang unang invocation ay mag return ng error at ang pangalawa ay magtatagumpay.
 
 ```tsx
 describe("account-data-matching", () => {
@@ -454,4 +454,4 @@ Tulad ng iba pang mga aralin sa modyul na ito, ang iyong pagkakataon na magsanay
 
 Maglaan ng ilang oras upang suriin ang hindi bababa sa isang programa at tiyakin na ang mga wastong pagsusuri sa data ay nasa lugar upang maiwasan ang mga pagsasamantala sa seguridad.
 
-Tandaan, kung makakita ka ng bug o pagsasamantala sa programa ng ibang tao, mangyaring alertuhan sila! Kung makakita ka ng isa sa iyong sariling programa, siguraduhing i-patch ito kaagad
+Tandaan, kung makakita ka ng bug o pagsasamantala sa programa ng ibang tao, mangyaring alertuhan sila! Kung makakita ka ng isa sa iyong sariling programa, siguraduhing i-patch ito kaagad.
