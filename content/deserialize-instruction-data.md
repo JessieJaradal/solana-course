@@ -13,7 +13,7 @@ objectives:
 # TL;DR
 
 - Karamihan sa mga programa ay sumusuporta sa **multiple discrete instructions** - magpapasya ka kapag isinusulat mo ang iyong programa kung ano ang mga instructions ito at kung anong data ang dapat kasama sa kanila
-- Ang mga kalawang **enums** ay kadalasang ginagamit upang kumatawan sa mga hiwalay na instructions ng programa
+- Ang mga Rust **enums** ay kadalasang ginagamit upang kumatawan sa mga hiwalay na instructions ng programa
 - Maaari mong gamitin ang `borsh` crate at ang `derive` attribute para magbigay ng Borsh deserialization at serialization functionality sa Rust structs
 - Tumutulong ang mga expression na `match` na kalawang na lumikha ng mga conditional code path batay sa ibinigay na instruction
 
