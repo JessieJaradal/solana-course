@@ -183,7 +183,7 @@ Signer.info.is_signer == true
 
 ### `Program`
 
-Ang type ng `Program` ay nag-validates na ang account ay isang partikular na programa.
+Ang type ng `Program` ay nag-validate na ang account ay isang partikular na programa.
 
 Para sa account ng `system_program` sa nakaraang halimbawa, ang uri ng `Program` ay ginagamit upang specify ang program ay dapat ang system program. Nagbibigay ang Anchor ng uri ng `System` na kinabibilangan ng `programId` ng system program na susuriin.
 
