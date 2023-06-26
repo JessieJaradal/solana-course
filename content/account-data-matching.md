@@ -8,7 +8,7 @@ objectives:
 
 # TL;DR
 
-- Gumamitin ang **data validation checks** upang ma-verify na tumutugma ang data ng account sa inaasahang halaga**.** Kung walang mga naaangkop na data validations checks, maaaring gamitin ang mga hindi inaasahang account sa isang instruction.
+- Gamitin ang **data validation checks** upang ma-verify na tumutugma ang data ng account sa inaasahang halaga**.** Kung walang mga naaangkop na data validations checks, maaaring gamitin ang mga hindi inaasahang account sa isang instruction.
 - Upang ipatupad ang mga data validations checks sa Rust, ikumpara lang ang data na nakaimbak sa isang account sa inaasahang value.
     
     ```rust
