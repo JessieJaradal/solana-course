@@ -105,7 +105,7 @@ pub fn set_value_secure(
 
 ## Gamitin ang mga constraints sa `seeds` at `bump` ng Anchor
 
-Nagbibigay ang Anchor ng maginhawang paraan upang mag-derive ng mga PDAs sa struct ng account validation gamit ang mga constraints na `seeds` at `bump`. Ang mga ito ay maaaring isama pa sa `init` na constraint upang ma-initialize ang account sa intended na address. Upang maprotektahan ang programa mula sa kahinaan na tinatalakay namin sa buong araling ito, hindi ka pinapayagan ng Anchor na        mag-initialize ng isang account sa isang PDA gamit ang anumang bagay maliban sa canonical bump. Sa halip, gumagamit ito ng `find_program_address` para makuha ang PDA at pagkatapos ay isagawa ang initialization.
+Nagbibigay ang Anchor ng maginhawang paraan upang mag-derive ng mga PDAs sa struct ng account validation gamit ang mga constraints na `seeds` at `bump`. Ang mga ito ay maaaring isama pa sa `init` na constraint upang ma-initialize ang account sa intended na address. Upang maprotektahan ang programa mula sa kahinaan na tinatalakay namin sa buong araling ito, hindi ka pinapayagan ng Anchor na mag-initialize ng isang account sa isang PDA gamit ang anumang bagay maliban sa canonical bump. Sa halip, gumagamit ito ng `find_program_address` para makuha ang PDA at pagkatapos ay isagawa ang initialization.
 
 ```rust
 use anchor_lang::prelude::*;
@@ -213,7 +213,7 @@ pub struct Data {
 
 Kung hindi mo tutukuyin ang bump sa `bump` constraint, gagamitin pa rin ni Anchor ang `find_program_address` para makuha ang PDA gamit ang canonical bump. Bilang resulta, ang iyong instruction ay magkakaroon ng variable na halaga ng compute budget. Dapat itong gamitin ng mga program na nasa panganib na lumampas sa kanilang compute budget dahil may posibilidad na ang badyet ng programa ay maaaring paminsan-minsan at hindi mahuhulaan na lumampas.
 
-Sa kabilang banda, kung kailangan mo lang i-verify ang address ng isang PDA na ipinasa nang hindi nag-initializing ng account, mapipilitan kang hayaan ang Anchor na ma-derive ang canonical bump o ilantad ang iyong programa sa mga hindi kinakailangang panganib. Kung ganoon, mangyaring gamitin ang canonical bump sa kabila ng bahagyang marka laban sa pagganap.
+Sa kabilang banda, kung kailangan mo lang i-verify ang address ng isang PDA na ipinasa nang hindi nag-initialize ng account, mapipilitan kang hayaan ang Anchor na ma-derive ang canonical bump o ilantad ang iyong programa sa mga hindi kinakailangang panganib. Kung ganoon, mangyaring gamitin ang canonical bump sa kabila ng bahagyang marka laban sa pagganap.
 
 # Demo
 
