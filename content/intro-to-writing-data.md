@@ -134,7 +134,7 @@ export type TransactionInstructionCtorFields = {
 };
 ```
 
-Alinsunod sa kahulugan sa itaas, ang bagay na ipinasa sa `TransactionInstruction` constructor ay requires ng:
+Alinsunod sa kahulugan sa itaas, ang bagay na ipinasa sa `TransactionInstruction` constructor ay nag-require ng:
 
 - isang array of keys na may type ng `AccountMeta`
 - ang public key para sa programang tinatawag
@@ -144,7 +144,7 @@ Babalewalain natin ang field ng `data` sa ngayon at muli itong babalikan sa susu
 
 Ang field ng `programId` ay medyo nagpapaliwanag sa sarili: ito ang public key na nauugnay sa programa. Kakailanganin mong malaman ito nang maaga sa pagtawag sa programa sa parehong paraan na kailangan mong malaman ang public key ng isang taong gusto mong padalhan ng SOL.
 
-Ang array ng `keys` ay requires ng kaunting paliwanag. Ang bawat bagay sa array na ito ay kumakatawan sa isang account na babasahin o isusulat sa panahon ng pagpapatupad ng isang transaksyon. Nangangahulugan ito na kailangan mong malaman ang pag-uugali ng program na iyong tinatawagan at tiyaking ibibigay mo ang lahat ng kinakailangang mga account sa array.
+Ang array ng `keys` ay nag-require ng kaunting paliwanag. Ang bawat bagay sa array na ito ay kumakatawan sa isang account na babasahin o isusulat sa panahon ng pagpapatupad ng isang transaksyon. Nangangahulugan ito na kailangan mong malaman ang pag-uugali ng program na iyong tinatawagan at tiyaking ibibigay mo ang lahat ng kinakailangang mga account sa array.
 
 Ang bawat bagay sa hanay ng `keys` ay dapat may kasamang sumusunod:
 - `pubkey` - ang public key ng account
