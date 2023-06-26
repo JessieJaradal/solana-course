@@ -132,7 +132,7 @@ Bilang karagdagan sa instruction, ang parehong `invoke` at `invoke_signed` ay na
 
 Sa oras na gumawa ka ng CPI sa iyong programa, dapat ay nakuha mo na ang lahat ng mga bagay na `account_info` na ipinasa sa iyong programa at inimbak ang mga ito sa mga variable. Bubuo ka ng iyong listahan ng mga bagay na `account_info` para sa CPI sa pamamagitan ng pagpili kung alin sa mga account na ito ang kokopyahin at ipapadala.
 
-Maaari mong kopyahin ang bawat object na `account_info` na kailangan mong ipasa sa CPI gamit ang [`Clone`](https://docs.rs/solana-program/1.10.19/solana_program/account_info/struct.AccountInfo.html# impl-Clone) na katangian na ipinatupad sa `account_info` struct sa `solana_program` crate. Ang trait ng `Clone` ay nag re-returns ng kopya ng [`account_info`](https://docs.rs/solana-program/1.10.19/solana_program/account_info/struct.AccountInfo.html) instance.
+Maaari mong kopyahin ang bawat object na `account_info` na kailangan mong ipasa sa CPI gamit ang [`Clone`](https://docs.rs/solana-program/1.10.19/solana_program/account_info/struct.AccountInfo.html# impl-Clone) na katangian na ipinatupad sa `account_info` struct sa `solana_program` crate. Ang trait ng `Clone` ay nag-rereturn ng kopya ng [`account_info`](https://docs.rs/solana-program/1.10.19/solana_program/account_info/struct.AccountInfo.html) instance.
 
 ```rust
 &[first_account.clone(), second_account.clone(), third_account.clone()]
@@ -355,7 +355,7 @@ invoke_signed(
 Ok(())
 ```
 
-Tandaan na gumagamit kami ng `invoke_signed` at hindi `invoke` dito. Ang Token program ay nangangailangan ng `mint_auth` account upang mag-sign para sa transaksyong ito. Dahil ang `mint_auth` account ay isang PDA, tanging ang program kung saan ito hinango ay maaaring mag-sign sa ngalan nito. Kapag tinawag ang `invoke_signed`, ang runtime ng Solana ay tatawag ng `create_program_address` kasama ang mga seeds at bump na ibinigay at pagkatapos ay ihahambing ang nagmula na address sa lahat ng mga address ng ibinigay na `AccountInfo` object. Kung ang alinman sa mga address ay tumutugma sa nagmula na address, alam ng runtime na ang katugmang account ay isang PDA ng program na ito at na ang program ay signing sa transaksyong ito para sa account na ito.
+Tandaan na gumagamit kami ng `invoke_signed` at hindi `invoke` dito. Ang Token program ay nangangailangan ng `mint_auth` account upang mag-sign para sa transaksyong ito. Dahil ang `mint_auth` account ay isang PDA, tanging ang program kung saan ito hinango ay maaaring mag-sign sa ngalan nito. Kapag tinawag ang `invoke_signed`, ang runtime ng Solana ay tatawag ng `create_program_address` kasama ang mga seeds at bump na ibinigay at pagkatapos ay ihahambing ang nagmula na address sa lahat ng mga address ng ibinigay na `AccountInfo` object. Kung ang alinman sa mga address ay tumutugma sa nagmula na address, alam ng runtime na ang katugmang account ay isang PDA ng program na ito at na ang program ay mag-sign sa transaksyong ito para sa account na ito.
 
 Sa puntong ito, ang instruction ng `add_movie_review` ay dapat na ganap na gumagana at magbibigay ng sampung token sa reviewer kapag may ginawang review.
 
